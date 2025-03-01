@@ -230,7 +230,12 @@ app.use(async (ctx) => {
                 return;
             }
 
-            ctx.response.body = { message: email_verified };
+            if (email_verified == 0 ) {
+                ctx.response.body = { message: "verify_email" };
+            } else {
+                ctx.response.body = { message: "todo: give session!" }; //TODO
+            }
+            
         } catch (error) {
             console.error(error);
             ctx.response.status = 500;
