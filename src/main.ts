@@ -454,7 +454,7 @@ app.use(async (ctx) => {
 
     if (
         ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_sessions_by_userid"
+        ctx.request.url.pathname === "/get_session"
     ) {
         const body = await ctx.request.body().value as {
             userid: string;
@@ -518,6 +518,74 @@ app.use(async (ctx) => {
         const email = userResult[0].email;
 
         ctx.response.body = { message: "ok", email: email };
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_session"
+    ) {
+        const body = await ctx.request.body().value as {
+            userid: string;
+        };
+    
+        const sessionsResult = await db.query(
+            "SELECT id, userid, ip, created_at FROM sessions WHERE userid = ?",
+            [body.userid]
+        );
+    
+        if (sessionsResult.length === 0) {
+            ctx.response.status = 404;
+            ctx.response.body = { error: "No sessions found for this user" };
+            return;
+        }
+    
+        ctx.response.body = { message: "ok", sessions: sessionsResult };
+    }
+    
+        if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_creation_date"
+    ) {
+        const body = await ctx.request.body().value as {
+            token?: string;
+        };
+
+        // Check if the token is provided
+        if (!body.token) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Missing token" };
+            return;
+        }
+
+        // Check if the session token is valid
+        const sessionResult = await db.query(
+            "SELECT userid FROM sessions WHERE token = ?",
+            [body.token],
+        );
+
+        if (sessionResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid session token" };
+            return;
+        }
+
+        const userid = sessionResult[0].userid;
+
+        // Retrieve the user's email based on the userid
+        const userResult = await db.query(
+            "SELECT creation_date FROM users WHERE id = ?",
+            [userid],
+        );
+
+        if (userResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "User not found" };
+            return;
+        }
+
+        const creation_date = userResult[0].creation_date;
+
+        ctx.response.body = { message: "ok", creation_date: creation_date };
     }
 
 });
