@@ -231,16 +231,80 @@ app.use(async (ctx) => {
                 return;
             }
 
-            if (email_verified == 0 ) {
-                ctx.response.body = { message: "verify_email", email_token: email_token };
+            if (email_verified == 0) {
+                ctx.response.body = {
+                    message: "verify_email",
+                    email_token: email_token,
+                };
             } else {
                 ctx.response.body = { message: "todo: give session!" }; //TODO
             }
-            
         } catch (error) {
             console.error(error);
             ctx.response.status = 500;
             ctx.response.body = { error: "Unknown error" };
+        }
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/new_email_code"
+    ) {
+        const body = await ctx.request.body().value as {
+            token?: string;
+        };
+
+        // Check of de velden correct zijn
+        if (!body.token) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Missing fields" };
+            return;
+        }
+
+        // Check if the username exists
+        const userResult = await db.query(
+            "SELECT email_verified, email, delete_token FROM users WHERE email_token = ?",
+            [body.token],
+        );
+
+        if (userResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid token" };
+            return;
+        }
+
+        const email_verified = userResult[0].email_verified;
+        const delete_token = userResult[0].delete_token;
+        const email = userResult[0].email;
+
+        if (email_verified == 1) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Already verified" };
+            return;
+        } else {
+            // Send mail
+            const MailHtml = await Deno.readTextFile("signupmail.html");
+
+            // Replace tokens in the HTML template
+            const Mailcontent = MailHtml
+                .replace("{email_token}", body.token)
+                .replace("{delete_token}", delete_token);
+
+            // Send email data
+            const emailData = {
+                to: email,
+                subject: "Davidnet email verification!",
+                message: Mailcontent,
+                isHtml: true,
+            };
+
+            // Send the email
+            const response = await sendEmail(emailData);
+            if (!response.success) {
+                console.error("Failed to send email:", response.message);
+            }
+
+            ctx.response.body = { message: "sended!" };
         }
     }
 });
