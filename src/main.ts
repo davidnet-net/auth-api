@@ -169,7 +169,7 @@ app.use(async (ctx) => {
                 console.error("Failed to send email:", response.message);
             }
 
-            ctx.response.body = { message: "User created" };
+            ctx.response.body = { message: "User created", email_token: email_token,};
         } catch (error) {
             console.error(error);
             ctx.response.status = 500;
