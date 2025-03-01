@@ -148,7 +148,7 @@ app.use(async (ctx) => {
             }
 
             // Send mail
-            const MailHtml = await Deno.readTextFile("signupmail.html");
+            const MailHtml = await Deno.readTextFile("mails/signupmail.html");
 
             // Replace tokens in the HTML template
             const Mailcontent = MailHtml
@@ -283,7 +283,7 @@ app.use(async (ctx) => {
             return;
         } else {
             // Send mail
-            const MailHtml = await Deno.readTextFile("emailverification_resend.html");
+            const MailHtml = await Deno.readTextFile("mails/emailverification_resend.html");
 
             // Replace tokens in the HTML template
             const Mailcontent = MailHtml
