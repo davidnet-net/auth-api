@@ -208,7 +208,7 @@ app.use(async (ctx) => {
 
             // Check if the username exists
             const userResult = await db.query(
-                "SELECT id, password, email_verified FROM users WHERE username = ?",
+                "SELECT id, password, email_verified, email_token FROM users WHERE username = ?",
                 [body.username],
             );
 
@@ -220,7 +220,8 @@ app.use(async (ctx) => {
 
             const storedPassword = userResult[0].password;
             const email_verified = userResult[0].email_verified;
-            
+            const email_token = userResult[0].email_token;
+
             // Compare the provided password with the stored hash
             const passwordMatch = await compare(body.password, storedPassword);
 
@@ -231,7 +232,7 @@ app.use(async (ctx) => {
             }
 
             if (email_verified == 0 ) {
-                ctx.response.body = { message: "verify_email" };
+                ctx.response.body = { message: "verify_email", email_token: email_token };
             } else {
                 ctx.response.body = { message: "todo: give session!" }; //TODO
             }
