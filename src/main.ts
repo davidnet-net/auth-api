@@ -283,7 +283,7 @@ app.use(async (ctx) => {
             return;
         } else {
             // Send mail
-            const MailHtml = await Deno.readTextFile("signupmail.html");
+            const MailHtml = await Deno.readTextFile("emailverification_resend.html");
 
             // Replace tokens in the HTML template
             const Mailcontent = MailHtml
