@@ -130,14 +130,12 @@ app.use(async (ctx) => {
             try {
                 await db.execute(
                     `
-                    INSERT INTO users(username, password, email, email_verified, totp_seed, created_at, delete_token, email_token) 
-                    VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
+                    INSERT INTO users(username, password, email, created_at, delete_token, email_token) 
+                    VALUES(?, ?, ?, ?, ?, ?)`,
                     [
                         body.username,
                         password,
                         body.email,
-                        0,
-                        0,
                         created_at,
                         delete_token,
                         email_token,
