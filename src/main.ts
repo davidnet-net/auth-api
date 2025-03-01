@@ -307,6 +307,28 @@ app.use(async (ctx) => {
             ctx.response.body = { message: "sended!" };
         }
     }
+
+    if (ctx.request.method === "GET" && ctx.request.url.pathname === "/email_status") {
+        const body = await ctx.request.body().value as {
+            token?: string;
+        };
+    
+        const userResult = await db.query(
+            "SELECT email_verified FROM users WHERE email_token = ?",
+            [body.token],
+        );
+
+        if (userResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid token" };
+            return;
+        }
+
+        const email_verified = userResult[0].email_verified;
+
+        ctx.response.body = { message: "ok", status: email_verified };
+    }
+
 });
 
 // Start de server
