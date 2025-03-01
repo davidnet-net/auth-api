@@ -1,7 +1,7 @@
 //? Libraries
 import { Application } from "https://deno.land/x/oak@v12.1.0/mod.ts";
 import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
-import { compare, hash } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"; //compare
+import { compare, hash } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 
 //? Modules
@@ -24,69 +24,49 @@ app.use(oakCors({
 
 //? Routes
 app.use(async (ctx) => {
+    // Root
     if (ctx.request.method === "GET" && ctx.request.url.pathname === "/") {
         ctx.response.body = { message: "Access denied!" };
         return;
     }
 
-    if (
-        ctx.request.method === "POST" && ctx.request.url.pathname === "/signup"
-    ) {
+    // Signup
+    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/signup") {
         try {
-            // JSON body uitlezen en casten naar het juiste type
             const body = await ctx.request.body().value as {
                 username?: string;
                 email?: string;
                 password?: string;
             };
 
-            // Check of de velden correct zijn
             if (!body.username || !body.email || !body.password) {
                 ctx.response.status = 400;
                 ctx.response.body = { error: "Missing fields" };
                 return;
             }
 
+            // Validate username and email
             if (!/^[a-zA-Z0-9_]+$/.test(body.username)) {
                 ctx.response.status = 400;
                 ctx.response.body = { error: "Invalid username" };
                 return;
             }
 
-            if (
-                !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(
-                    body.email,
-                )
-            ) {
+            if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(body.email)) {
                 ctx.response.status = 400;
                 ctx.response.body = { error: "Invalid email" };
                 return;
             }
 
-            if (body.username.length > 50) {
+            if (body.username.length > 50 || body.email.length > 255) {
                 ctx.response.status = 400;
-                ctx.response.body = { error: "Too big username" };
+                ctx.response.body = { error: "Too big username or email" };
                 return;
             }
 
-            if (body.email.length > 255) {
-                ctx.response.status = 400;
-                ctx.response.body = { error: "Too big email" };
-                return;
-            }
-
-            // Check if values already exist
-            // Check if the username already exists
-            const existingUsername = await db.query(
-                "SELECT id FROM users WHERE username = ?",
-                [body.username],
-            );
-
-            // Check if the email already exists
-            const existingEmail = await db.query(
-                "SELECT id FROM users WHERE email = ?",
-                [body.email],
-            );
+            // Check if username or email exists
+            const existingUsername = await db.query("SELECT id FROM users WHERE username = ?", [body.username]);
+            const existingEmail = await db.query("SELECT id FROM users WHERE email = ?", [body.email]);
 
             if (existingUsername.length > 0) {
                 ctx.response.status = 400;
@@ -100,79 +80,31 @@ app.use(async (ctx) => {
                 return;
             }
 
-            // Created at time genereren in UTC
             const currentUTCDate = new Date();
-            const year = currentUTCDate.getUTCFullYear();
-            const month = String(currentUTCDate.getUTCMonth() + 1).padStart(
-                2,
-                "0",
-            );
-            const day = String(currentUTCDate.getUTCDate()).padStart(2, "0");
-            const hours = String(currentUTCDate.getUTCHours()).padStart(2, "0");
-            const minutes = String(currentUTCDate.getUTCMinutes()).padStart(
-                2,
-                "0",
-            );
-            const seconds = String(currentUTCDate.getUTCSeconds()).padStart(
-                2,
-                "0",
-            );
-            const created_at =
-                `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            const created_at = currentUTCDate.toISOString().slice(0, 19).replace("T", " ");
 
-            // Other stuff
             const delete_token = generateRandomString(50);
             const email_token = generateRandomString(50);
             const password = await hash(body.password);
 
-            // SQL Interaction
-            try {
-                await db.execute(
-                    `
-                    INSERT INTO users(username, password, email, created_at, delete_token, email_token) 
-                    VALUES(?, ?, ?, ?, ?, ?)`,
-                    [
-                        body.username,
-                        password,
-                        body.email,
-                        created_at,
-                        delete_token,
-                        email_token,
-                    ],
-                );
-            } catch (error) {
-                console.error(error);
-                ctx.response.status = 500;
-                ctx.response.body = { error: "db error" };
-                return;
-            }
+            // Insert user into database
+            await db.execute(
+                `INSERT INTO users(username, password, email, created_at, delete_token, email_token) 
+                VALUES(?, ?, ?, ?, ?, ?)`,
+                [body.username, password, body.email, created_at, delete_token, email_token]
+            );
 
-            // Send mail
+            // Send verification email
             const MailHtml = await Deno.readTextFile("mails/signupmail.html");
-
-            // Replace tokens in the HTML template
-            const Mailcontent = MailHtml
-                .replace("{email_token}", email_token)
-                .replace("{delete_token}", delete_token);
-
-            // Send email data
-            const emailData = {
-                to: body.email,
-                subject: "Davidnet account created!",
-                message: Mailcontent,
-                isHtml: true,
-            };
-
-            // Send the email
+            const Mailcontent = MailHtml.replace("{email_token}", email_token).replace("{delete_token}", delete_token);
+            const emailData = { to: body.email, subject: "Davidnet account created!", message: Mailcontent, isHtml: true };
             const response = await sendEmail(emailData);
+
             if (!response.success) {
                 console.error("Failed to send email:", response.message);
             }
 
-            ctx.response.body = {
-                message: "User created",
-                email_token: email_token,
-            };
+            ctx.response.body = { message: "User created", email_token: email_token };
         } catch (error) {
             console.error(error);
             ctx.response.status = 500;
@@ -180,40 +112,21 @@ app.use(async (ctx) => {
         }
     }
 
-    if (
-        ctx.request.method === "POST" && ctx.request.url.pathname === "/login"
-    ) {
+    // Login
+    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/login") {
         try {
-            // JSON body uitlezen en casten naar het juiste type
             const body = await ctx.request.body().value as {
                 username?: string;
                 password?: string;
             };
 
-            // Check of de velden correct zijn
             if (!body.username || !body.password) {
                 ctx.response.status = 400;
                 ctx.response.body = { error: "Missing fields" };
                 return;
             }
 
-            if (!/^[a-zA-Z0-9_]+$/.test(body.username)) {
-                ctx.response.status = 400;
-                ctx.response.body = { error: "Invalid username" };
-                return;
-            }
-
-            if (body.username.length > 50) {
-                ctx.response.status = 400;
-                ctx.response.body = { error: "Invalid username" };
-                return;
-            }
-
-            // Check if the username exists
-            const userResult = await db.query(
-                "SELECT id, password, email_verified, email_token FROM users WHERE username = ?",
-                [body.username],
-            );
+            const userResult = await db.query("SELECT id, password, email_verified, email_token FROM users WHERE username = ?", [body.username]);
 
             if (userResult.length === 0) {
                 ctx.response.status = 400;
@@ -225,7 +138,6 @@ app.use(async (ctx) => {
             const email_verified = userResult[0].email_verified;
             const email_token = userResult[0].email_token;
 
-            // Compare the provided password with the stored hash
             const passwordMatch = await compare(body.password, storedPassword);
 
             if (!passwordMatch) {
@@ -234,66 +146,22 @@ app.use(async (ctx) => {
                 return;
             }
 
-            if (email_verified == 0) {
-                ctx.response.body = {
-                    message: "verify_email",
-                    email_token: email_token,
-                };
+            if (email_verified === 0) {
+                ctx.response.body = { message: "verify_email", email_token: email_token };
             } else {
                 const session_token = generateRandomString(50);
                 const userid = userResult[0].id;
                 const ip = ctx.request.headers.get("X-Forwarded-For");
 
-                // Created at time genereren in UTC
                 const currentUTCDate = new Date();
-                const year = currentUTCDate.getUTCFullYear();
-                const month = String(currentUTCDate.getUTCMonth() + 1).padStart(
-                    2,
-                    "0",
-                );
-                const day = String(currentUTCDate.getUTCDate()).padStart(
-                    2,
-                    "0",
-                );
-                const hours = String(currentUTCDate.getUTCHours()).padStart(
-                    2,
-                    "0",
-                );
-                const minutes = String(currentUTCDate.getUTCMinutes()).padStart(
-                    2,
-                    "0",
-                );
-                const seconds = String(currentUTCDate.getUTCSeconds()).padStart(
-                    2,
-                    "0",
-                );
-                const created_at =
-                    `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                const created_at = currentUTCDate.toISOString().slice(0, 19).replace("T", " ");
 
-                // SQL Interaction for session
-                try {
-                    await db.execute(
-                        `
-                    INSERT INTO sessions(userid, ip, token, created_at) 
-                    VALUES(?, ?, ?, ?)`,
-                        [
-                            userid,
-                            ip,
-                            session_token,
-                            created_at
-                        ],
-                    );
-                } catch (error) {
-                    console.error(error);
-                    ctx.response.status = 500;
-                    ctx.response.body = { error: "db error" };
-                    return;
-                }
+                await db.execute(
+                    `INSERT INTO sessions(userid, ip, token, created_at) VALUES(?, ?, ?, ?)`,
+                    [userid, ip, session_token, created_at]
+                );
 
-                ctx.response.body = {
-                    message: "ok",
-                    session_token: session_token,
-                };
+                ctx.response.body = { message: "ok", session_token: session_token };
             }
         } catch (error) {
             console.error(error);
@@ -302,26 +170,17 @@ app.use(async (ctx) => {
         }
     }
 
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/new_email_code"
-    ) {
-        const body = await ctx.request.body().value as {
-            token?: string;
-        };
+    // New email code
+    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/new_email_code") {
+        const body = await ctx.request.body().value as { token?: string };
 
-        // Check of de velden correct zijn
         if (!body.token) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Missing fields" };
             return;
         }
 
-        // Check if the username exists
-        const userResult = await db.query(
-            "SELECT email_verified, email, delete_token FROM users WHERE email_token = ?",
-            [body.token],
-        );
+        const userResult = await db.query("SELECT email_verified, email, delete_token FROM users WHERE email_token = ?", [body.token]);
 
         if (userResult.length === 0) {
             ctx.response.status = 400;
@@ -333,51 +192,29 @@ app.use(async (ctx) => {
         const delete_token = userResult[0].delete_token;
         const email = userResult[0].email;
 
-        if (email_verified == 1) {
+        if (email_verified === 1) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Already verified" };
             return;
-        } else {
-            // Send mail
-            const MailHtml = await Deno.readTextFile(
-                "mails/emailverification_resend.html",
-            );
-
-            // Replace tokens in the HTML template
-            const Mailcontent = MailHtml
-                .replace("{email_token}", body.token)
-                .replace("{delete_token}", delete_token);
-
-            // Send email data
-            const emailData = {
-                to: email,
-                subject: "Davidnet email verification!",
-                message: Mailcontent,
-                isHtml: true,
-            };
-
-            // Send the email
-            const response = await sendEmail(emailData);
-            if (!response.success) {
-                console.error("Failed to send email:", response.message);
-            }
-
-            ctx.response.body = { message: "sended!" };
         }
+
+        const MailHtml = await Deno.readTextFile("mails/emailverification_resend.html");
+        const Mailcontent = MailHtml.replace("{email_token}", body.token).replace("{delete_token}", delete_token);
+        const emailData = { to: email, subject: "Davidnet email verification!", message: Mailcontent, isHtml: true };
+        const response = await sendEmail(emailData);
+
+        if (!response.success) {
+            console.error("Failed to send email:", response.message);
+        }
+
+        ctx.response.body = { message: "sended!" };
     }
 
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/email_status"
-    ) {
-        const body = await ctx.request.body().value as {
-            token?: string;
-        };
+    // Verify email
+    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/verify_email") {
+        const body = await ctx.request.body().value as { token?: string };
 
-        const userResult = await db.query(
-            "SELECT email_verified FROM users WHERE email_token = ?",
-            [body.token],
-        );
+        const userResult = await db.query("SELECT email_verified FROM users WHERE email_token = ?", [body.token]);
 
         if (userResult.length === 0) {
             ctx.response.status = 400;
@@ -386,57 +223,22 @@ app.use(async (ctx) => {
         }
 
         const email_verified = userResult[0].email_verified;
-
-        ctx.response.body = { message: "ok", status: email_verified };
-    }
-
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/verify_email"
-    ) {
-        const body = await ctx.request.body().value as {
-            token?: string;
-        };
-
-        const userResult = await db.query(
-            "SELECT email_verified FROM users WHERE email_token = ?",
-            [body.token],
-        );
-
-        if (userResult.length === 0) {
-            ctx.response.status = 400;
-            ctx.response.body = { error: "Invalid token" };
-            return;
-        }
-
-        const email_verified = userResult[0].email_verified;
-        if (email_verified == 1) {
+        if (email_verified === 1) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Already verified" };
             return;
         }
 
-        // Update email_verified to 1
-        await db.query(
-            "UPDATE users SET email_verified = 1 WHERE email_token = ?",
-            [body.token],
-        );
+        await db.query("UPDATE users SET email_verified = 1 WHERE email_token = ?", [body.token]);
 
         ctx.response.body = { message: "ok" };
     }
 
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_session"
-    ) {
-        const body = await ctx.request.body().value as {
-            token?: string;
-        };
+    // Get session
+    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/get_session") {
+        const body = await ctx.request.body().value as { token?: string };
 
-        const userResult = await db.query(
-            "SELECT id, userid, ip, created_at FROM sessions WHERE token = ?",
-            [body.token],
-        );
+        const userResult = await db.query("SELECT id, userid, ip, created_at FROM sessions WHERE token = ?", [body.token]);
 
         if (userResult.length === 0) {
             ctx.response.status = 400;
@@ -444,56 +246,22 @@ app.use(async (ctx) => {
             return;
         }
 
-        const id = userResult[0].id;
-        const userid = userResult[0].userid;
-        const ip = userResult[0].ip;
-        const created_at = userResult[0].created_at;
+        const { id, userid, ip, created_at } = userResult[0];
 
-        ctx.response.body = { message: "ok", id: id, userid: userid, ip: ip, created_at: created_at };
+        ctx.response.body = { message: "ok", id, userid, ip, created_at };
     }
 
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_session"
-    ) {
-        const body = await ctx.request.body().value as {
-            userid: string;
-        };
-    
-        const sessionsResult = await db.query(
-            "SELECT id, userid, ip, created_at FROM sessions WHERE userid = ?",
-            [body.userid]
-        );
-    
-        if (sessionsResult.length === 0) {
-            ctx.response.status = 404;
-            ctx.response.body = { error: "No sessions found for this user" };
-            return;
-        }
-    
-        ctx.response.body = { message: "ok", sessions: sessionsResult };
-    }
-    
-        if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_email"
-    ) {
-        const body = await ctx.request.body().value as {
-            token?: string;
-        };
+    // Get email by token
+    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/get_email") {
+        const body = await ctx.request.body().value as { token?: string };
 
-        // Check if the token is provided
         if (!body.token) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Missing token" };
             return;
         }
 
-        // Check if the session token is valid
-        const sessionResult = await db.query(
-            "SELECT userid FROM sessions WHERE token = ?",
-            [body.token],
-        );
+        const sessionResult = await db.query("SELECT userid FROM sessions WHERE token = ?", [body.token]);
 
         if (sessionResult.length === 0) {
             ctx.response.status = 400;
@@ -502,12 +270,7 @@ app.use(async (ctx) => {
         }
 
         const userid = sessionResult[0].userid;
-
-        // Retrieve the user's email based on the userid
-        const userResult = await db.query(
-            "SELECT email FROM users WHERE id = ?",
-            [userid],
-        );
+        const userResult = await db.query("SELECT email FROM users WHERE id = ?", [userid]);
 
         if (userResult.length === 0) {
             ctx.response.status = 400;
@@ -517,79 +280,25 @@ app.use(async (ctx) => {
 
         const email = userResult[0].email;
 
-        ctx.response.body = { message: "ok", email: email };
+        ctx.response.body = { message: "ok", email };
     }
 
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_session"
-    ) {
-        const body = await ctx.request.body().value as {
-            userid: string;
-        };
-    
-        const sessionsResult = await db.query(
-            "SELECT id, userid, ip, created_at FROM sessions WHERE userid = ?",
-            [body.userid]
-        );
-    
+    // Get sessions by user ID
+    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/get_sessions") {
+        const body = await ctx.request.body().value as { userid: string };
+
+        const sessionsResult = await db.query("SELECT id, userid, ip, created_at FROM sessions WHERE userid = ?", [body.userid]);
+
         if (sessionsResult.length === 0) {
             ctx.response.status = 404;
             ctx.response.body = { error: "No sessions found for this user" };
             return;
         }
-    
+
         ctx.response.body = { message: "ok", sessions: sessionsResult };
     }
-    
-        if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_created_at"
-    ) {
-        const body = await ctx.request.body().value as {
-            token?: string;
-        };
-
-        // Check if the token is provided
-        if (!body.token) {
-            ctx.response.status = 400;
-            ctx.response.body = { error: "Missing token" };
-            return;
-        }
-
-        // Check if the session token is valid
-        const sessionResult = await db.query(
-            "SELECT userid FROM sessions WHERE token = ?",
-            [body.token],
-        );
-
-        if (sessionResult.length === 0) {
-            ctx.response.status = 400;
-            ctx.response.body = { error: "Invalid session token" };
-            return;
-        }
-
-        const userid = sessionResult[0].userid;
-
-        // Retrieve the user's email based on the userid
-        const userResult = await db.query(
-            "SELECT creation_at FROM users WHERE id = ?",
-            [userid],
-        );
-
-        if (userResult.length === 0) {
-            ctx.response.status = 400;
-            ctx.response.body = { error: "User not found" };
-            return;
-        }
-
-        const creation_at = userResult[0].creation_at;
-
-        ctx.response.body = { message: "ok", creation_at: creation_at };
-    }
-
 });
 
-// Start de server
+// Start the server
 console.log(`Server running at http://localhost:${port}`);
 await app.listen({ port: port });
