@@ -1,7 +1,7 @@
 //? Libraries
 import { Application } from "https://deno.land/x/oak@v12.1.0/mod.ts";
 import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
-import { hash } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"; //compare
+import { hash, compare } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts"; //compare
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 
 //? Modules
@@ -98,7 +98,7 @@ app.use(async (ctx) => {
                 ctx.response.status = 400;
                 ctx.response.body = { error: "Email taken" };
                 return;
-}
+            }
 
 
             // Created at time genereren in UTC
@@ -177,6 +177,66 @@ app.use(async (ctx) => {
             ctx.response.body = { error: "Unknown error" };
         }
     }
+
+    if (
+        ctx.request.method === "POST" && ctx.request.url.pathname === "/login"
+    ) {
+        try {
+            // JSON body uitlezen en casten naar het juiste type
+            const body = await ctx.request.body().value as {
+                username?: string;
+                password?: string;
+            };
+    
+            // Check of de velden correct zijn
+            if (!body.username || !body.password) {
+                ctx.response.status = 400;
+                ctx.response.body = { error: "Missing fields" };
+                return;
+            }
+    
+            if (!/^[a-zA-Z0-9_]+$/.test(body.username)) {
+                ctx.response.status = 400;
+                ctx.response.body = { error: "Invalid username" };
+                return;
+            }
+    
+            if (body.username.length > 50) {
+                ctx.response.status = 400;
+                ctx.response.body = { error: "Invalid username" };
+                return;
+            }
+    
+            // Check if the username exists
+            const userResult = await db.query(
+                "SELECT id, password FROM users WHERE username = ?",
+                [body.username]
+            );
+    
+            if (userResult.length === 0) {
+                ctx.response.status = 400;
+                ctx.response.body = { error: "Invalid username" };
+                return;
+            }
+    
+            const storedPassword = userResult[0].password;
+    
+            // Compare the provided password with the stored hash
+            const passwordMatch = await compare(body.password, storedPassword);
+    
+            if (!passwordMatch) {
+                ctx.response.status = 400;
+                ctx.response.body = { error: "Invalid password" };
+                return;
+            }
+    
+            ctx.response.body = { message: "Login ok" };
+        } catch (error) {
+            console.error(error);
+            ctx.response.status = 500;
+            ctx.response.body = { error: "Unknown error" };
+        }
+    }    
 });
 
 // Start de server
