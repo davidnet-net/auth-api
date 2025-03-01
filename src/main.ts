@@ -329,6 +329,38 @@ app.use(async (ctx) => {
         ctx.response.body = { message: "ok", status: email_verified };
     }
 
+    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/verify_email") {
+        const body = await ctx.request.body().value as {
+            token?: string;
+        };
+    
+        const userResult = await db.query(
+            "SELECT email_verified FROM users WHERE email_token = ?",
+            [body.token],
+        );
+    
+        if (userResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid token" };
+            return;
+        }
+        
+        const email_verified = userResult[0].email_verified;
+        if (email_verified == 1) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Already verified" };
+            return;
+        }
+        
+        // Update email_verified to 1
+        await db.query(
+            "UPDATE users SET email_verified = 1 WHERE email_token = ?",
+            [body.token],
+        );
+    
+        ctx.response.body = { message: "ok"};
+    }    
+
 });
 
 // Start de server
