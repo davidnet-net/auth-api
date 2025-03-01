@@ -573,7 +573,7 @@ app.use(async (ctx) => {
 
         // Retrieve the user's email based on the userid
         const userResult = await db.query(
-            "SELECT creation_date FROM users WHERE id = ?",
+            "SELECT creation_at FROM users WHERE id = ?",
             [userid],
         );
 
@@ -583,9 +583,9 @@ app.use(async (ctx) => {
             return;
         }
 
-        const creation_date = userResult[0].creation_date;
+        const creation_at = userResult[0].creation_at;
 
-        ctx.response.body = { message: "ok", creation_date: creation_date };
+        ctx.response.body = { message: "ok", creation_at: creation_at };
     }
 
 });
