@@ -208,7 +208,7 @@ app.use(async (ctx) => {
 
             // Check if the username exists
             const userResult = await db.query(
-                "SELECT id, password FROM users WHERE username = ?",
+                "SELECT id, password, email_verified FROM users WHERE username = ?",
                 [body.username],
             );
 
@@ -219,7 +219,8 @@ app.use(async (ctx) => {
             }
 
             const storedPassword = userResult[0].password;
-
+            const email_verified = userResult[0].email_verified;
+            
             // Compare the provided password with the stored hash
             const passwordMatch = await compare(body.password, storedPassword);
 
@@ -229,7 +230,7 @@ app.use(async (ctx) => {
                 return;
             }
 
-            ctx.response.body = { message: "Login ok" };
+            ctx.response.body = { message: email_verified };
         } catch (error) {
             console.error(error);
             ctx.response.status = 500;
