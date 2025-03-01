@@ -75,6 +75,32 @@ app.use(async (ctx) => {
                 return;
             }
 
+            // Check if values already exist
+            // Check if the username already exists
+            const existingUsername = await db.query(
+                "SELECT id FROM users WHERE username = ?",
+                [body.username]
+            );
+
+            // Check if the email already exists
+            const existingEmail = await db.query(
+                "SELECT id FROM users WHERE email = ?",
+                [body.email]
+            );
+
+            if (existingUsername.length > 0) {
+                ctx.response.status = 400;
+                ctx.response.body = { error: "Username taken" };
+                return;
+            }
+
+            if (existingEmail.length > 0) {
+                ctx.response.status = 400;
+                ctx.response.body = { error: "Email taken" };
+                return;
+}
+
+
             // Created at time genereren in UTC
             const currentUTCDate = new Date();
             const year = currentUTCDate.getUTCFullYear();
