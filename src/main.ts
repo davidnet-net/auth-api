@@ -544,7 +544,7 @@ app.use(async (ctx) => {
     
         if (
         ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_creation_date"
+        ctx.request.url.pathname === "/get_created_at"
     ) {
         const body = await ctx.request.body().value as {
             token?: string;
