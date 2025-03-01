@@ -424,6 +424,56 @@ app.use(async (ctx) => {
 
         ctx.response.body = { message: "ok" };
     }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_session"
+    ) {
+        const body = await ctx.request.body().value as {
+            token?: string;
+        };
+
+        const userResult = await db.query(
+            "SELECT id, userid, ip, created_at FROM sessions WHERE token = ?",
+            [body.token],
+        );
+
+        if (userResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid session" };
+            return;
+        }
+
+        const id = userResult[0].id;
+        const userid = userResult[0].userid;
+        const ip = userResult[0].ip;
+        const created_at = userResult[0].created_at;
+
+        ctx.response.body = { message: "ok", id: id, userid: userid, ip: ip, created_at: created_at };
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_sessions_by_userid"
+    ) {
+        const body = await ctx.request.body().value as {
+            userid: string;
+        };
+    
+        const sessionsResult = await db.query(
+            "SELECT id, userid, ip, created_at FROM sessions WHERE userid = ?",
+            [body.userid]
+        );
+    
+        if (sessionsResult.length === 0) {
+            ctx.response.status = 404;
+            ctx.response.body = { error: "No sessions found for this user" };
+            return;
+        }
+    
+        ctx.response.body = { message: "ok", sessions: sessionsResult };
+    }
+    
 });
 
 // Start de server
