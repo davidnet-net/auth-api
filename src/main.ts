@@ -308,7 +308,7 @@ app.use(async (ctx) => {
         }
     }
 
-    if (ctx.request.method === "GET" && ctx.request.url.pathname === "/email_status") {
+    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/email_status") {
         const body = await ctx.request.body().value as {
             token?: string;
         };
