@@ -754,8 +754,8 @@ app.use(async (ctx) => {
         const password = await hash(body.password);
 
         await db.query(
-            "UPDATE users SET password, recovery_token, recovery_ticket, recovery_verified = ?, WHERE recovery_token = ?",
-            [password, 0, 0, body.token],
+            "UPDATE users SET password = ?, recovery_token = ?, recovery_ticket = ?, recovery_verified = ? WHERE recovery_token = ?",
+            [password, 0, 0, 0, body.token],
         );
 
         ctx.response.body = { message: "Password reset" };
