@@ -448,7 +448,54 @@ app.use(async (ctx) => {
 
         ctx.response.body = { message: "ok", created_at: created_at };
     }
-});
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/delete_session"
+    ) {
+        const body = await ctx.request.body().value as { token?: string, session_id?: string };
+    
+        if (!body.token) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Missing token" };
+            return;
+        }
+    
+        if (!body.session_id) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Missing session_id" };
+            return;
+        }
+    
+        const sessionResult = await db.query(
+            "SELECT userid FROM sessions WHERE token = ?",
+            [body.token],
+        );
+    
+        if (sessionResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid session token" };
+            return;
+        }
+    
+        const sessionCheck = await db.query(
+            "SELECT id FROM sessions WHERE id = ?",
+            [body.session_id],
+        );
+    
+        if (sessionCheck.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Session not found" };
+            return;
+        }
+    
+        await db.execute(`DELETE FROM sessions WHERE id = ?`, [body.session_id]);
+    
+        ctx.response.status = 200;
+        ctx.response.body = { message: "ok" };
+    }
+});    
+    
 
 // Start the server
 console.log(`Server running at http://localhost:${port}`);
