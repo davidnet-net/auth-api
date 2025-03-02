@@ -189,14 +189,15 @@ app.use(async (ctx) => {
                 const session_token = generateRandomString(50);
                 const userid = userResult[0].id;
                 const ip = ctx.request.headers.get("X-Forwarded-For");
+                const useragent = ctx.request.headers.get("user-agent");
 
                 const currentUTCDate = new Date();
                 const created_at = currentUTCDate.toISOString().slice(0, 19)
                     .replace("T", " ");
 
                 await db.execute(
-                    `INSERT INTO sessions(userid, ip, token, created_at) VALUES(?, ?, ?, ?)`,
-                    [userid, ip, session_token, created_at],
+                    `INSERT INTO sessions(userid, ip, token, created_at, useragent) VALUES(?, ?, ?, ?, ?)`,
+                    [userid, ip, session_token, created_at, useragent],
                 );
 
                 ctx.response.body = {
@@ -339,7 +340,7 @@ app.use(async (ctx) => {
         }
 
         const userResult = await db.query(
-            "SELECT id, userid, ip, created_at FROM sessions WHERE token = ?",
+            "SELECT id, userid, ip, created_at, useragent FROM sessions WHERE token = ?",
             [body.token],
         );
 
@@ -349,9 +350,9 @@ app.use(async (ctx) => {
             return;
         }
 
-        const { id, userid, ip, created_at } = userResult[0];
+        const { id, userid, ip, created_at, useragent } = userResult[0];
 
-        ctx.response.body = { message: "ok", id, userid, ip, created_at };
+        ctx.response.body = { message: "ok", id, userid, ip, created_at, useragent };
     }
 
     // Get email by token
