@@ -822,57 +822,64 @@ app.use(async (ctx) => {
         ctx.request.method === "POST" &&
         ctx.request.url.pathname === "/delete_account"
     ) {
-        const body = await ctx.request.body().value as {
-            token?: string;
-        };
-
+        const body = await ctx.request.body().value as { token?: string };
+    
         if (!body.token) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Invalid" };
             return;
         }
-
+    
         const userResult = await db.query(
-            "SELECT email id FROM users WHERE delete_token = ?",
+            "SELECT email, id FROM users WHERE delete_token = ?",
             [body.token],
         );
-
+    
         if (userResult.length === 0) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Invalid" };
             return;
         }
-        const email = userResult[0].email;
-        const id = userResult[0].id
-
-        const _deleteResult = await db.query(
-            "DELETE FROM users WHERE delete_token = ?",
-            [body.token],
-        );   
-        
-        const _deleteResult_sessions = await db.query(
-            "DELETE FROM sessions WHERE userid = ?",
-            [id],
-        );     
-
-        const MailHtml = await Deno.readTextFile(
-            "mails/account_deleted.html",
-        );
-        const emailData = {
-            to: email,
-            subject: "Davidnet account deleted!",
-            message: MailHtml,
-            isHtml: true,
-        };
-        const response = await sendEmail(emailData);
-
-        if (!response.success) {
-            console.error("Failed to send email:", response.message);
+    
+        const { email, id } = userResult[0];
+    
+        try {
+            // Verwijder sessies eerst
+            await db.query("DELETE FROM sessions WHERE userid = ?", [id]);
+    
+            // Daarna de gebruiker verwijderen
+            const deleteResult = await db.query(
+                "DELETE FROM users WHERE delete_token = ?",
+                [body.token],
+            );
+    
+            if (deleteResult.affectedRows === 0) {
+                throw new Error("Failed to delete user");
+            }
+    
+            // Mail pas versturen als alles succesvol is
+            const MailHtml = await Deno.readTextFile("mails/account_deleted.html");
+            const emailData = {
+                to: email,
+                subject: "Davidnet account deleted!",
+                message: MailHtml,
+                isHtml: true,
+            };
+    
+            const response = await sendEmail(emailData);
+    
+            if (!response.success) {
+                console.error("Failed to send email:", response.message);
+            }
+    
+            ctx.response.body = { message: "Account deleted" };
+        } catch (error) {
+            console.error("Error deleting account:", error);
+            ctx.response.status = 500;
+            ctx.response.body = { error: "Internal server error" };
         }
-
-        ctx.response.body = { message: "Account deleted" };
     }
-});
+    
 
 // Start the server
 console.log(`Server running at http://localhost:${port}`);
