@@ -238,6 +238,12 @@ app.use(async (ctx) => {
     if (ctx.request.method === "POST" && ctx.request.url.pathname === "/get_session") {
         const body = await ctx.request.body().value as { token?: string };
 
+        if (!body.token) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Missing token" };
+            return;
+        }
+        
         const userResult = await db.query("SELECT id, userid, ip, created_at FROM sessions WHERE token = ?", [body.token]);
 
         if (userResult.length === 0) {
@@ -285,7 +291,21 @@ app.use(async (ctx) => {
 
     // Get sessions by user ID
     if (ctx.request.method === "POST" && ctx.request.url.pathname === "/get_sessions") {
-        const body = await ctx.request.body().value as { userid: string };
+        const body = await ctx.request.body().value as { token?: string, userid?: string };
+
+        if (!body.token) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Missing token" };
+            return;
+        }
+
+        const sessionResult = await db.query("SELECT userid FROM sessions WHERE token = ?", [body.token]);
+
+        if (sessionResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid session token" };
+            return;
+        }
 
         const sessionsResult = await db.query("SELECT id, userid, ip, created_at FROM sessions WHERE userid = ?", [body.userid]);
 
