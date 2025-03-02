@@ -373,7 +373,10 @@ app.use(async (ctx) => {
         ctx.request.method === "POST" &&
         ctx.request.url.pathname === "/get_sessions"
     ) {
-        const body = await ctx.request.body().value as { token?: string, userid?: string };
+        const body = await ctx.request.body().value as {
+            token?: string;
+            userid?: string;
+        };
 
         if (!body.token) {
             ctx.response.status = 400;
