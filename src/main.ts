@@ -431,7 +431,7 @@ app.use(async (ctx) => {
         }
 
         const sessionsResult = await db.query(
-            "SELECT id, userid, ip, created_at FROM sessions WHERE userid = ?",
+            "SELECT id, userid, ip, created_at, useragent FROM sessions WHERE userid = ?",
             [body.userid],
         );
 
