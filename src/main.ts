@@ -352,7 +352,14 @@ app.use(async (ctx) => {
 
         const { id, userid, ip, created_at, useragent } = userResult[0];
 
-        ctx.response.body = { message: "ok", id, userid, ip, created_at, useragent };
+        ctx.response.body = {
+            message: "ok",
+            id,
+            userid,
+            ip,
+            created_at,
+            useragent,
+        };
     }
 
     // Get email by token
