@@ -143,6 +143,7 @@ app.use(async (ctx) => {
     }
 
     // Login
+    // Login
     if (
         ctx.request.method === "POST" && ctx.request.url.pathname === "/login"
     ) {
@@ -153,7 +154,7 @@ app.use(async (ctx) => {
                 totp_token: string;
             };
 
-            if (!body.username || !body.password) {
+            if (!body.username || !body.password || !body.totp_token) {
                 ctx.response.status = 400;
                 ctx.response.body = { error: "Missing fields" };
                 return;
@@ -187,10 +188,10 @@ app.use(async (ctx) => {
             let totpvalid = true;
             if (totp_enabled == "1") {
                 totpvalid = await TOTP.verifyTOTP(totp_seed, body.totp_token, {
-                    interval: 30,  // Time interval (default is 30 seconds)
-                    digits: 6,     // Number of digits in the code (default is 6)
-                    forward: 2,    // Tolerance in the future (number of intervals)
-                    backward: 2    // Tolerance in the past (number of intervals)
+                    interval: 30, // Time interval (default is 30 seconds)
+                    digits: 6, // Number of digits in the code (default is 6)
+                    forward: 2, // Tolerance in the future (number of intervals)
+                    backward: 2, // Tolerance in the past (number of intervals)
                 });
             }
 
@@ -204,12 +205,13 @@ app.use(async (ctx) => {
                     message: "give_totp",
                     session_token: "0",
                 };
-            } 
-            else {
+            } else {
                 const session_token = generateRandomString(50);
                 const userid = userResult[0].id;
-                const ip = ctx.request.headers.get("X-Forwarded-For");
-                const useragent = ctx.request.headers.get("user-agent");
+                const ip = ctx.request.headers.get("X-Forwarded-For") ||
+                    "unknown";
+                const useragent = ctx.request.headers.get("user-agent") ||
+                    "unknown";
 
                 const currentUTCDate = new Date();
                 const created_at = currentUTCDate.toISOString().slice(0, 19)
@@ -843,55 +845,57 @@ app.use(async (ctx) => {
         ctx.request.url.pathname === "/delete_account"
     ) {
         const body = await ctx.request.body().value as { token?: string };
-    
+
         if (!body.token) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Invalid" };
             return;
         }
-    
+
         const userResult = await db.query(
             "SELECT email, id FROM users WHERE delete_token = ?",
             [body.token],
         );
-    
+
         if (userResult.length === 0) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Invalid" };
             return;
         }
-    
+
         const { email, id } = userResult[0];
-    
+
         try {
             // Verwijder sessies eerst
             await db.query("DELETE FROM sessions WHERE userid = ?", [id]);
-    
+
             // Daarna de gebruiker verwijderen
             const deleteResult = await db.query(
                 "DELETE FROM users WHERE delete_token = ?",
                 [body.token],
             );
-    
+
             if (deleteResult.affectedRows === 0) {
                 throw new Error("Failed to delete user");
             }
-    
+
             // Mail pas versturen als alles succesvol is
-            const MailHtml = await Deno.readTextFile("mails/account_deleted.html");
+            const MailHtml = await Deno.readTextFile(
+                "mails/account_deleted.html",
+            );
             const emailData = {
                 to: email,
                 subject: "Davidnet account deleted!",
                 message: MailHtml,
                 isHtml: true,
             };
-    
+
             const response = await sendEmail(emailData);
-    
+
             if (!response.success) {
                 console.error("Failed to send email:", response.message);
             }
-    
+
             ctx.response.body = { message: "Account deleted" };
         } catch (error) {
             console.error("Error deleting account:", error);
