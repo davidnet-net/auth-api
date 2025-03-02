@@ -467,33 +467,39 @@ app.use(async (ctx) => {
             return;
         }
     
-        const sessionResult = await db.query(
+        // Haal de gebruiker op die hoort bij het huidige token
+        const userSession = await db.query(
             "SELECT userid FROM sessions WHERE token = ?",
             [body.token],
         );
     
-        if (sessionResult.length === 0) {
+        if (userSession.length === 0) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Invalid session token" };
             return;
         }
     
+        const userId = userSession[0].userid;
+    
+        // Controleer of de sessie die verwijderd moet worden van dezelfde gebruiker is
         const sessionCheck = await db.query(
-            "SELECT id FROM sessions WHERE id = ?",
-            [body.session_id],
+            "SELECT id FROM sessions WHERE id = ? AND userid = ?",
+            [body.session_id, userId],
         );
     
         if (sessionCheck.length === 0) {
             ctx.response.status = 400;
-            ctx.response.body = { error: "Session not found" };
+            ctx.response.body = { error: "unauthorized" };
             return;
         }
     
-        await db.execute(`DELETE FROM sessions WHERE id = ?`, [body.session_id]);
+        // Verwijder de sessie
+        await db.execute("DELETE FROM sessions WHERE id = ?", [body.session_id]);
     
         ctx.response.status = 200;
         ctx.response.body = { message: "ok" };
     }
+    
 });    
     
 
