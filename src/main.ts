@@ -817,6 +817,39 @@ app.use(async (ctx) => {
 
         ctx.response.body = { message: "ok", delete_token: delete_token };
     }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/delete_account"
+    ) {
+        const body = await ctx.request.body().value as {
+            token?: string;
+        };
+
+        if (!body.token) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid" };
+            return;
+        }
+
+        const userResult = await db.query(
+            "SELECT email FROM users WHERE delete_token = ?",
+            [body.token],
+        );
+
+        if (userResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid" };
+            return;
+        }
+
+        const _deleteResult = await db.query(
+            "DELETE FROM users WHERE delete_token = ?",
+            [body.token],
+        );        
+
+        ctx.response.body = { message: "Account deleted" };
+    }
 });
 
 // Start the server
