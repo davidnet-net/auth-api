@@ -7,7 +7,7 @@ import { TOTP } from "https://deno.land/x/totp@1.0.1/mod.ts";
 
 //? Modules
 import { connectdb } from "./sql.ts";
-import { generateRandomString, sendEmail } from "./utils.ts";
+import { generateRandomString, sendEmail, getCryptoKey } from "./utils.ts";
 
 //? Objects
 const app = new Application();
@@ -186,9 +186,8 @@ app.use(async (ctx) => {
 
             let totpvalid = true;
             if (totp_enabled == "1") {
-                console.log("totp_seed: " + totp_seed);
-                console.log("totp_token: " + body.totp_token);
-                totpvalid = await TOTP.verifyTOTP(totp_seed, body.totp_token, {
+                const key = await getCryptoKey(totp_seed); // Converteer totp_seed naar CryptoKey
+                totpvalid = await TOTP.verifyTOTP(key, body.totp_token, {
                     interval: 30,  // Time interval (default is 30 seconds)
                     digits: 6,     // Number of digits in the code (default is 6)
                     forward: 2,    // Tolerance in the future (number of intervals)

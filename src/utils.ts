@@ -50,3 +50,16 @@ export const sendEmail = async (
         };
     }
 };
+
+export async function getCryptoKey(secret: string): Promise<CryptoKey> {
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(secret); // Zet de secret om naar een Uint8Array
+
+    return await crypto.subtle.importKey(
+        "raw",                   // "raw" omdat het een geheim is
+        keyData,                 // De geëncodeerde sleutel
+        { name: "HMAC", hash: { name: "SHA-1" } },  // Algoritme en hashfunctie
+        false,                   // De sleutel wordt niet gedeeld
+        ["sign"]                 // De actie die de sleutel kan uitvoeren
+    );
+}
