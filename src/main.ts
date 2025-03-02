@@ -586,46 +586,49 @@ app.use(async (ctx) => {
         ctx.request.url.pathname === "/start_recovery"
     ) {
         const body = await ctx.request.body().value as { email?: string };
-    
+
         if (!body.email) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Invalid email" };
             return;
         }
-    
+
         const userResult = await db.query(
             "SELECT email_verified FROM users WHERE email = ?",
             [body.email],
         );
-    
+
         if (userResult.length === 0) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Invalid email" };
             return;
         }
-    
+
         const email_verified = userResult[0].email_verified;
-    
+
         if (email_verified === 0) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Not verified" };
             return;
         }
-    
+
         const recovery_token = generateRandomString(50);
         const recovery_ticket = generateRandomString(50);
         const recovery_verified = 0;
-    
+
         // Update recovery_verified, recovery_token, and recovery_ticket in one query or separately
         await db.query(
             "UPDATE users SET recovery_verified = ?, recovery_token = ?, recovery_ticket = ? WHERE email = ?",
             [recovery_verified, recovery_token, recovery_ticket, body.email],
         );
-    
+
         const MailHtml = await Deno.readTextFile(
             "mails/verify_recovery.html",
         );
-        const Mailcontent = MailHtml.replace("{recovery_token}", recovery_token);
+        const Mailcontent = MailHtml.replace(
+            "{recovery_token}",
+            recovery_token,
+        );
         const emailData = {
             to: body.email,
             subject: "Davidnet recovery verification!",
@@ -633,14 +636,17 @@ app.use(async (ctx) => {
             isHtml: true,
         };
         const response = await sendEmail(emailData);
-    
+
         if (!response.success) {
             console.error("Failed to send email:", response.message);
         }
-    
-        ctx.response.body = { message: "Email sent!", recovery_ticket: recovery_ticket };
+
+        ctx.response.body = {
+            message: "Email sent!",
+            recovery_ticket: recovery_ticket,
+        };
     }
-    
+
     if (
         ctx.request.method === "POST" &&
         ctx.request.url.pathname === "/verify_recovery"
@@ -648,31 +654,31 @@ app.use(async (ctx) => {
         const body = await ctx.request.body().value as {
             token?: string;
         };
-    
+
         const userResult = await db.query(
             "SELECT recovery_token, recovery_verified FROM users WHERE recovery_token = ?",
             [body.token],
         );
-    
+
         if (userResult.length === 0) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Invalid token" };
             return;
         }
-    
+
         const email_verified = userResult[0].recovery_verified;
         if (email_verified == 1) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Already verified" };
             return;
         }
-    
+
         // Update email_verified to 1
         await db.query(
             "UPDATE users SET recovery_verified = 1 WHERE recovery_token = ?",
             [body.token],
         );
-    
+
         ctx.response.body = { message: "ok" };
     }
 
@@ -699,14 +705,62 @@ app.use(async (ctx) => {
 
         if (recovery_verified == 1) {
             const token = userResult[0].recovery_token;
-            ctx.response.body = { message: "ok", status: recovery_verified, token: token };
+            ctx.response.body = {
+                message: "ok",
+                status: recovery_verified,
+                token: token,
+            };
         } else {
-            ctx.response.body = { message: "ok", status: recovery_verified, token: 0 };
+            ctx.response.body = {
+                message: "ok",
+                status: recovery_verified,
+                token: 0,
+            };
         }
     }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/recover_password"
+    ) {
+        const body = await ctx.request.body().value as {
+            password?: string;
+            token?: string;
+        };
+
+        if (!body.password) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid password" };
+            return;
+        }
+
+        if (!body.token) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid" };
+            return;
+        }
+
+        const userResult = await db.query(
+            "SELECT recovery_token FROM users WHERE recovery_token = ?",
+            [body.token],
+        );
+
+        if (userResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid" };
+            return;
+        }
+
+        const password = await hash(body.password);
+
+        await db.query(
+            "UPDATE users SET password, recovery_token, recovery_ticket, recovery_verified = ?, WHERE recovery_token = ?",
+            [password, 0, 0, body.token],
+        );
+
+        ctx.response.body = { message: "Password reset" };
+    }
 });
-
-
 
 // Start the server
 console.log(`Server running at http://localhost:${port}`);
