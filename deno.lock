@@ -20,7 +20,8 @@
     "https://deno.land/x/bcrypt/mod.ts": "https://deno.land/x/bcrypt@v0.4.1/mod.ts",
     "https://deno.land/x/cors/mod.ts": "https://deno.land/x/cors@v1.2.2/mod.ts",
     "https://deno.land/x/dotenv/mod.ts": "https://deno.land/x/dotenv@v3.2.2/mod.ts",
-    "https://deno.land/x/mysql/mod.ts": "https://deno.land/x/mysql@v2.12.1/mod.ts"
+    "https://deno.land/x/mysql/mod.ts": "https://deno.land/x/mysql@v2.12.1/mod.ts",
+    "https://deno.land/x/totp/mod.ts": "https://deno.land/x/totp@1.0.1/mod.ts"
   },
   "remote": {
     "https://deno.land/std@0.104.0/_util/assert.ts": "2f868145a042a11d5ad0a3c748dcf580add8a0dbc0e876eaa0026303a5488f58",
@@ -346,7 +347,10 @@
     "https://deno.land/x/oak@v12.1.0/util.ts": "3af8c4ed04c6cc2bedbe66e562a77fc59c72df31c55a902a63885861ca1639d6",
     "https://deno.land/x/path_to_regexp@v6.2.1/index.ts": "894060567837bae8fc9c5cbd4d0a05e9024672083d5883b525c031eea940e556",
     "https://deno.land/x/router@v2.0.0/mod.ts": "8792d3c390e0446d89eb94ee8030dd20de18f2aba649e263d2832f3f150ea2ce",
-    "https://deno.land/x/sql_builder@v1.9.1/util.ts": "b9855dc435972704cf82655019f4ec168ac83550ab4db596c5f6b6d201466384"
+    "https://deno.land/x/sql_builder@v1.9.1/util.ts": "b9855dc435972704cf82655019f4ec168ac83550ab4db596c5f6b6d201466384",
+    "https://deno.land/x/totp@1.0.1/base32.ts": "6c675077ab4eb286f5befdd469935fe37e7c8ecc8a23ca0fb5e6e2b9361c5329",
+    "https://deno.land/x/totp@1.0.1/mod.ts": "8295580c3cadd6d9a0f7c52b997cad223e18170c19a7d240745b9e7fa0dfc64b",
+    "https://deno.land/x/totp@1.0.1/totp.ts": "5957de480d854f258aeed1f3acea59aabb677d7cb7b5fe48620857035f0cd344"
   },
   "workspace": {
     "dependencies": [
