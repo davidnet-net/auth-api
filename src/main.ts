@@ -142,51 +142,52 @@ app.use(async (ctx) => {
         }
     }
 
-    // Login
-    if (
-        ctx.request.method === "POST" && ctx.request.url.pathname === "/login"
-    ) {
+    // Login API
+    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/login") {
         try {
             const body = await ctx.request.body().value as {
                 username?: string;
                 password?: string;
-                totp_token: string;
+                totp_token: string; // Optional TOTP token for validation
             };
-
+    
+            // Check if username and password are provided
             if (!body.username || !body.password) {
                 ctx.response.status = 400;
                 ctx.response.body = { error: "Missing fields" };
                 return;
             }
-
+    
+            // Query the database for the user
             const userResult = await db.query(
                 "SELECT id, password, email_verified, email_token, totp_enabled, totp_seed FROM users WHERE username = ?",
                 [body.username],
             );
-
+    
+            // Check if the user exists
             if (userResult.length === 0) {
                 ctx.response.status = 400;
                 ctx.response.body = { error: "Invalid username" };
                 return;
             }
-
+    
             const storedPassword = userResult[0].password;
             const email_verified = userResult[0].email_verified;
             const email_token = userResult[0].email_token;
             const totp_enabled = userResult[0].totp_enabled;
             const totp_seed = userResult[0].totp_seed;
-
+    
+            // Check if the password matches
             const passwordMatch = await compare(body.password, storedPassword);
-
             if (!passwordMatch) {
                 ctx.response.status = 400;
                 ctx.response.body = { error: "Invalid password" };
                 return;
             }
-
+    
             let totpvalid = true;
             if (totp_enabled == "1") {
-                const key = await getCryptoKey(totp_seed); // Converteer totp_seed naar CryptoKey
+                const key = await getCryptoKey(totp_seed); // Convert the TOTP seed to a CryptoKey
                 totpvalid = await TOTP.verifyTOTP(key, body.totp_token, {
                     interval: 30,  // Time interval (default is 30 seconds)
                     digits: 6,     // Number of digits in the code (default is 6)
@@ -194,33 +195,39 @@ app.use(async (ctx) => {
                     backward: 2    // Tolerance in the past (number of intervals)
                 });
             }
-
+    
+            // Email verification required
             if (email_verified === 0) {
                 ctx.response.body = {
                     message: "verify_email",
                     email_token: email_token,
                 };
-            } else if (!totpvalid) {
+            } 
+            // If TOTP is required and invalid
+            else if (totp_enabled === "1" && !totpvalid) {
                 ctx.response.body = {
                     message: "give_totp",
                     session_token: "0",
                 };
             } 
+            // Successful login, create session token
             else {
                 const session_token = generateRandomString(50);
                 const userid = userResult[0].id;
                 const ip = ctx.request.headers.get("X-Forwarded-For");
                 const useragent = ctx.request.headers.get("user-agent");
-
+    
                 const currentUTCDate = new Date();
                 const created_at = currentUTCDate.toISOString().slice(0, 19)
                     .replace("T", " ");
-
+    
+                // Insert the session into the database
                 await db.execute(
                     `INSERT INTO sessions(userid, ip, token, created_at, useragent) VALUES(?, ?, ?, ?, ?)`,
                     [userid, ip, session_token, created_at, useragent],
                 );
-
+    
+                // Return the session token
                 ctx.response.body = {
                     message: "ok",
                     session_token: session_token,
@@ -232,6 +239,7 @@ app.use(async (ctx) => {
             ctx.response.body = { error: "Unknown error" };
         }
     }
+    
 
     if (
         ctx.request.method === "POST" &&
