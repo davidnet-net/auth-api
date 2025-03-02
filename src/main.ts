@@ -745,7 +745,6 @@ app.use(async (ctx) => {
             [body.token],
         );
 
-
         if (userResult.length === 0) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Invalid" };
@@ -760,7 +759,6 @@ app.use(async (ctx) => {
             [password, 0, 0, 0, body.token],
         );
 
-        
         const MailHtml = await Deno.readTextFile(
             "mails/password_changed.html",
         );
