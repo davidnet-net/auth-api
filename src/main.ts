@@ -741,9 +741,10 @@ app.use(async (ctx) => {
         }
 
         const userResult = await db.query(
-            "SELECT recovery_token FROM users WHERE recovery_token = ?",
+            "SELECT email FROM users WHERE recovery_token = ?",
             [body.token],
         );
+
 
         if (userResult.length === 0) {
             ctx.response.status = 400;
@@ -751,12 +752,30 @@ app.use(async (ctx) => {
             return;
         }
 
+        const email = userResult[0].email;
         const password = await hash(body.password);
 
         await db.query(
             "UPDATE users SET password = ?, recovery_token = ?, recovery_ticket = ?, recovery_verified = ? WHERE recovery_token = ?",
             [password, 0, 0, 0, body.token],
         );
+
+        
+        const MailHtml = await Deno.readTextFile(
+            "mails/password_changed.html",
+        );
+
+        const emailData = {
+            to: email,
+            subject: "Davidnet account security!",
+            message: MailHtml,
+            isHtml: true,
+        };
+        const response = await sendEmail(emailData);
+
+        if (!response.success) {
+            console.error("Failed to send email:", response.message);
+        }
 
         ctx.response.body = { message: "Password reset" };
     }
