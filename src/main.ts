@@ -31,7 +31,9 @@ app.use(async (ctx) => {
     }
 
     // Signup
-    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/signup") {
+    if (
+        ctx.request.method === "POST" && ctx.request.url.pathname === "/signup"
+    ) {
         try {
             const body = await ctx.request.body().value as {
                 username?: string;
@@ -52,7 +54,11 @@ app.use(async (ctx) => {
                 return;
             }
 
-            if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(body.email)) {
+            if (
+                !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(
+                    body.email,
+                )
+            ) {
                 ctx.response.status = 400;
                 ctx.response.body = { error: "Invalid email" };
                 return;
@@ -65,8 +71,14 @@ app.use(async (ctx) => {
             }
 
             // Check if username or email exists
-            const existingUsername = await db.query("SELECT id FROM users WHERE username = ?", [body.username]);
-            const existingEmail = await db.query("SELECT id FROM users WHERE email = ?", [body.email]);
+            const existingUsername = await db.query(
+                "SELECT id FROM users WHERE username = ?",
+                [body.username],
+            );
+            const existingEmail = await db.query(
+                "SELECT id FROM users WHERE email = ?",
+                [body.email],
+            );
 
             if (existingUsername.length > 0) {
                 ctx.response.status = 400;
@@ -81,7 +93,8 @@ app.use(async (ctx) => {
             }
 
             const currentUTCDate = new Date();
-            const created_at = currentUTCDate.toISOString().slice(0, 19).replace("T", " ");
+            const created_at = currentUTCDate.toISOString().slice(0, 19)
+                .replace("T", " ");
 
             const delete_token = generateRandomString(50);
             const email_token = generateRandomString(50);
@@ -91,20 +104,36 @@ app.use(async (ctx) => {
             await db.execute(
                 `INSERT INTO users(username, password, email, created_at, delete_token, email_token) 
                 VALUES(?, ?, ?, ?, ?, ?)`,
-                [body.username, password, body.email, created_at, delete_token, email_token]
+                [
+                    body.username,
+                    password,
+                    body.email,
+                    created_at,
+                    delete_token,
+                    email_token,
+                ],
             );
 
             // Send verification email
             const MailHtml = await Deno.readTextFile("mails/signupmail.html");
-            const Mailcontent = MailHtml.replace("{email_token}", email_token).replace("{delete_token}", delete_token);
-            const emailData = { to: body.email, subject: "Davidnet account created!", message: Mailcontent, isHtml: true };
+            const Mailcontent = MailHtml.replace("{email_token}", email_token)
+                .replace("{delete_token}", delete_token);
+            const emailData = {
+                to: body.email,
+                subject: "Davidnet account created!",
+                message: Mailcontent,
+                isHtml: true,
+            };
             const response = await sendEmail(emailData);
 
             if (!response.success) {
                 console.error("Failed to send email:", response.message);
             }
 
-            ctx.response.body = { message: "User created", email_token: email_token };
+            ctx.response.body = {
+                message: "User created",
+                email_token: email_token,
+            };
         } catch (error) {
             console.error(error);
             ctx.response.status = 500;
@@ -113,7 +142,9 @@ app.use(async (ctx) => {
     }
 
     // Login
-    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/login") {
+    if (
+        ctx.request.method === "POST" && ctx.request.url.pathname === "/login"
+    ) {
         try {
             const body = await ctx.request.body().value as {
                 username?: string;
@@ -126,7 +157,10 @@ app.use(async (ctx) => {
                 return;
             }
 
-            const userResult = await db.query("SELECT id, password, email_verified, email_token FROM users WHERE username = ?", [body.username]);
+            const userResult = await db.query(
+                "SELECT id, password, email_verified, email_token FROM users WHERE username = ?",
+                [body.username],
+            );
 
             if (userResult.length === 0) {
                 ctx.response.status = 400;
@@ -147,21 +181,28 @@ app.use(async (ctx) => {
             }
 
             if (email_verified === 0) {
-                ctx.response.body = { message: "verify_email", email_token: email_token };
+                ctx.response.body = {
+                    message: "verify_email",
+                    email_token: email_token,
+                };
             } else {
                 const session_token = generateRandomString(50);
                 const userid = userResult[0].id;
                 const ip = ctx.request.headers.get("X-Forwarded-For");
 
                 const currentUTCDate = new Date();
-                const created_at = currentUTCDate.toISOString().slice(0, 19).replace("T", " ");
+                const created_at = currentUTCDate.toISOString().slice(0, 19)
+                    .replace("T", " ");
 
                 await db.execute(
                     `INSERT INTO sessions(userid, ip, token, created_at) VALUES(?, ?, ?, ?)`,
-                    [userid, ip, session_token, created_at]
+                    [userid, ip, session_token, created_at],
                 );
 
-                ctx.response.body = { message: "ok", session_token: session_token };
+                ctx.response.body = {
+                    message: "ok",
+                    session_token: session_token,
+                };
             }
         } catch (error) {
             console.error(error);
@@ -171,7 +212,10 @@ app.use(async (ctx) => {
     }
 
     // New email code
-    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/new_email_code") {
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/new_email_code"
+    ) {
         const body = await ctx.request.body().value as { token?: string };
 
         if (!body.token) {
@@ -180,7 +224,10 @@ app.use(async (ctx) => {
             return;
         }
 
-        const userResult = await db.query("SELECT email_verified, email, delete_token FROM users WHERE email_token = ?", [body.token]);
+        const userResult = await db.query(
+            "SELECT email_verified, email, delete_token FROM users WHERE email_token = ?",
+            [body.token],
+        );
 
         if (userResult.length === 0) {
             ctx.response.status = 400;
@@ -198,9 +245,17 @@ app.use(async (ctx) => {
             return;
         }
 
-        const MailHtml = await Deno.readTextFile("mails/emailverification_resend.html");
-        const Mailcontent = MailHtml.replace("{email_token}", body.token).replace("{delete_token}", delete_token);
-        const emailData = { to: email, subject: "Davidnet email verification!", message: Mailcontent, isHtml: true };
+        const MailHtml = await Deno.readTextFile(
+            "mails/emailverification_resend.html",
+        );
+        const Mailcontent = MailHtml.replace("{email_token}", body.token)
+            .replace("{delete_token}", delete_token);
+        const emailData = {
+            to: email,
+            subject: "Davidnet email verification!",
+            message: Mailcontent,
+            isHtml: true,
+        };
         const response = await sendEmail(emailData);
 
         if (!response.success) {
@@ -211,10 +266,16 @@ app.use(async (ctx) => {
     }
 
     // Verify email
-    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/verify_email") {
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/verify_email"
+    ) {
         const body = await ctx.request.body().value as { token?: string };
 
-        const userResult = await db.query("SELECT email_verified FROM users WHERE email_token = ?", [body.token]);
+        const userResult = await db.query(
+            "SELECT email_verified FROM users WHERE email_token = ?",
+            [body.token],
+        );
 
         if (userResult.length === 0) {
             ctx.response.status = 400;
@@ -229,13 +290,19 @@ app.use(async (ctx) => {
             return;
         }
 
-        await db.query("UPDATE users SET email_verified = 1 WHERE email_token = ?", [body.token]);
+        await db.query(
+            "UPDATE users SET email_verified = 1 WHERE email_token = ?",
+            [body.token],
+        );
 
         ctx.response.body = { message: "ok" };
     }
 
     // Get session
-    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/get_session") {
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_session"
+    ) {
         const body = await ctx.request.body().value as { token?: string };
 
         if (!body.token) {
@@ -243,8 +310,11 @@ app.use(async (ctx) => {
             ctx.response.body = { error: "Missing token" };
             return;
         }
-        
-        const userResult = await db.query("SELECT id, userid, ip, created_at FROM sessions WHERE token = ?", [body.token]);
+
+        const userResult = await db.query(
+            "SELECT id, userid, ip, created_at FROM sessions WHERE token = ?",
+            [body.token],
+        );
 
         if (userResult.length === 0) {
             ctx.response.status = 400;
@@ -258,7 +328,10 @@ app.use(async (ctx) => {
     }
 
     // Get email by token
-    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/get_email") {
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_email"
+    ) {
         const body = await ctx.request.body().value as { token?: string };
 
         if (!body.token) {
@@ -267,7 +340,10 @@ app.use(async (ctx) => {
             return;
         }
 
-        const sessionResult = await db.query("SELECT userid FROM sessions WHERE token = ?", [body.token]);
+        const sessionResult = await db.query(
+            "SELECT userid FROM sessions WHERE token = ?",
+            [body.token],
+        );
 
         if (sessionResult.length === 0) {
             ctx.response.status = 400;
@@ -276,7 +352,10 @@ app.use(async (ctx) => {
         }
 
         const userid = sessionResult[0].userid;
-        const userResult = await db.query("SELECT email FROM users WHERE id = ?", [userid]);
+        const userResult = await db.query(
+            "SELECT email FROM users WHERE id = ?",
+            [userid],
+        );
 
         if (userResult.length === 0) {
             ctx.response.status = 400;
@@ -286,11 +365,14 @@ app.use(async (ctx) => {
 
         const email = userResult[0].email;
 
-        ctx.response.body = { message: "ok", email };
+        ctx.response.body = { message: "ok", email: email };
     }
 
     // Get sessions by user ID
-    if (ctx.request.method === "POST" && ctx.request.url.pathname === "/get_sessions") {
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_sessions"
+    ) {
         const body = await ctx.request.body().value as { token?: string, userid?: string };
 
         if (!body.token) {
@@ -299,7 +381,10 @@ app.use(async (ctx) => {
             return;
         }
 
-        const sessionResult = await db.query("SELECT userid FROM sessions WHERE token = ?", [body.token]);
+        const sessionResult = await db.query(
+            "SELECT userid FROM sessions WHERE token = ?",
+            [body.token],
+        );
 
         if (sessionResult.length === 0) {
             ctx.response.status = 400;
@@ -307,7 +392,10 @@ app.use(async (ctx) => {
             return;
         }
 
-        const sessionsResult = await db.query("SELECT id, userid, ip, created_at FROM sessions WHERE userid = ?", [body.userid]);
+        const sessionsResult = await db.query(
+            "SELECT id, userid, ip, created_at FROM sessions WHERE userid = ?",
+            [body.userid],
+        );
 
         if (sessionsResult.length === 0) {
             ctx.response.status = 404;
@@ -316,6 +404,46 @@ app.use(async (ctx) => {
         }
 
         ctx.response.body = { message: "ok", sessions: sessionsResult };
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_created_at"
+    ) {
+        const body = await ctx.request.body().value as { token?: string };
+
+        if (!body.token) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Missing token" };
+            return;
+        }
+
+        const sessionResult = await db.query(
+            "SELECT userid FROM sessions WHERE token = ?",
+            [body.token],
+        );
+
+        if (sessionResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid session token" };
+            return;
+        }
+
+        const userid = sessionResult[0].userid;
+        const userResult = await db.query(
+            "SELECT created_at FROM users WHERE id = ?",
+            [userid],
+        );
+
+        if (userResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "User not found" };
+            return;
+        }
+
+        const created_at = userResult[0].created_at;
+
+        ctx.response.body = { message: "ok", created_at: created_at };
     }
 });
 
