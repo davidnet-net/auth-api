@@ -833,7 +833,7 @@ app.use(async (ctx) => {
         }
 
         const userResult = await db.query(
-            "SELECT email FROM users WHERE delete_token = ?",
+            "SELECT email id FROM users WHERE delete_token = ?",
             [body.token],
         );
 
@@ -842,11 +842,33 @@ app.use(async (ctx) => {
             ctx.response.body = { error: "Invalid" };
             return;
         }
+        const email = userResult[0].email;
+        const id = userResult[0].id
 
         const _deleteResult = await db.query(
             "DELETE FROM users WHERE delete_token = ?",
             [body.token],
-        );        
+        );   
+        
+        const _deleteResult_sessions = await db.query(
+            "DELETE FROM sessions WHERE userid = ?",
+            [id],
+        );     
+
+        const MailHtml = await Deno.readTextFile(
+            "mails/account_deleted.html",
+        );
+        const emailData = {
+            to: email,
+            subject: "Davidnet account deleted!",
+            message: MailHtml,
+            isHtml: true,
+        };
+        const response = await sendEmail(emailData);
+
+        if (!response.success) {
+            console.error("Failed to send email:", response.message);
+        }
 
         ctx.response.body = { message: "Account deleted" };
     }
