@@ -141,14 +141,12 @@ app.use(async (ctx) => {
             ctx.response.body = { error: "Unknown error" };
         }
     }
-
-    // Login API
     if (ctx.request.method === "POST" && ctx.request.url.pathname === "/login") {
         try {
             const body = await ctx.request.body().value as {
                 username?: string;
                 password?: string;
-                totp_token: string; // Optional TOTP token for validation
+                totp_token?: string; // Optional TOTP token for validation
             };
     
             // Check if username and password are provided
@@ -186,7 +184,14 @@ app.use(async (ctx) => {
             }
     
             let totpvalid = true;
-            if (totp_enabled == "1") {
+            // If TOTP is enabled and a TOTP token is provided, validate it
+            if (totp_enabled === "1") {
+                if (!body.totp_token) {
+                    ctx.response.status = 400;
+                    ctx.response.body = { error: "TOTP token is required" };
+                    return;
+                }
+    
                 const key = await getCryptoKey(totp_seed); // Convert the TOTP seed to a CryptoKey
                 totpvalid = await TOTP.verifyTOTP(key, body.totp_token, {
                     interval: 30,  // Time interval (default is 30 seconds)
@@ -239,6 +244,7 @@ app.use(async (ctx) => {
             ctx.response.body = { error: "Unknown error" };
         }
     }
+    
     
 
     if (
