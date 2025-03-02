@@ -879,7 +879,7 @@ app.use(async (ctx) => {
             ctx.response.body = { error: "Internal server error" };
         }
     }
-    
+});
 
 // Start the server
 console.log(`Server running at http://localhost:${port}`);
