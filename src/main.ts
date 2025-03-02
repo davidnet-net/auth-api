@@ -270,7 +270,9 @@ app.use(async (ctx) => {
         ctx.request.method === "POST" &&
         ctx.request.url.pathname === "/verify_email"
     ) {
-        const body = await ctx.request.body().value as { token?: string };
+        const body = await ctx.request.body().value as {
+            token?: string;
+        };
 
         const userResult = await db.query(
             "SELECT email_verified FROM users WHERE email_token = ?",
@@ -284,12 +286,13 @@ app.use(async (ctx) => {
         }
 
         const email_verified = userResult[0].email_verified;
-        if (email_verified === 1) {
+        if (email_verified == 1) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Already verified" };
             return;
         }
 
+        // Update email_verified to 1
         await db.query(
             "UPDATE users SET email_verified = 1 WHERE email_token = ?",
             [body.token],
@@ -297,6 +300,7 @@ app.use(async (ctx) => {
 
         ctx.response.body = { message: "ok" };
     }
+
 
     // Get session
     if (
