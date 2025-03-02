@@ -186,6 +186,8 @@ app.use(async (ctx) => {
 
             let totpvalid = true;
             if (totp_enabled == "1") {
+                console.log("totp_seed: " + totp_seed);
+                console.log("totp_token: " + body.totp_token);
                 totpvalid = await TOTP.verifyTOTP(totp_seed, body.totp_token, {
                     interval: 30,  // Time interval (default is 30 seconds)
                     digits: 6,     // Number of digits in the code (default is 6)
