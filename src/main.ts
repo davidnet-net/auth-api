@@ -890,6 +890,34 @@ app.use(async (ctx) => {
             ctx.response.body = { error: "Internal server error" };
         }
     }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/is_valid_early_login_token"
+    ) {
+        const body = await ctx.request.body().value as { token?: string };
+
+        if (!body.token) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Missing token" };
+            return;
+        }
+
+        const userResult = await db.query(
+            "SELECT id FROM users WHERE early_login_token = ?",
+            [body.token],
+        );
+
+        if (userResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid token" };
+            return;
+        }
+
+        ctx.response.body = {
+            message: "ok"
+        };
+    }
 });
 
 // Start the server
