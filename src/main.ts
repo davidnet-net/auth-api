@@ -1053,7 +1053,7 @@ app.use(async (ctx) => {
 
     if (
         ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_email"
+        ctx.request.url.pathname === "/disable_totp"
     ) {
         const body = await ctx.request.body().value as { token?: string };
 
