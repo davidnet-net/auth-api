@@ -187,7 +187,7 @@ app.use(async (ctx) => {
                     message: "verify_email",
                     email_token: email_token,
                 };
-            } else if (totp_enabled === 1 ) {
+            } else if (totp_enabled === 1 ) { // if (totp_enabled === 1 || somethingelse === 1 )
                 await db.query(
                     "UPDATE users SET early_login_token = ? WHERE username = ?",
                     [early_login_token, body.username]
