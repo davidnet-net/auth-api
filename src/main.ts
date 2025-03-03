@@ -999,7 +999,7 @@ app.use(async (ctx) => {
         ctx.request.url.pathname === "/get_2fa_information"
     ) {
         const body = await ctx.request.body().value as { token?: string };
-        // token can be an early_token or an session_token
+        //* token can be an early_token or an session_token
 
         if (!body.token) {
             ctx.response.status = 400;
