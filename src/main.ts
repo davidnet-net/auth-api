@@ -158,7 +158,7 @@ app.use(async (ctx) => {
             }
 
             const userResult = await db.query(
-                "SELECT id, password, email_verified, email_token FROM users WHERE username = ?",
+                "SELECT id, password, email_verified, email_token, totp_enabled FROM users WHERE username = ?",
                 [body.username],
             );
 
@@ -171,8 +171,10 @@ app.use(async (ctx) => {
             const storedPassword = userResult[0].password;
             const email_verified = userResult[0].email_verified;
             const email_token = userResult[0].email_token;
+            const totp_enabled = userResult[0].totp_enabled;
 
             const passwordMatch = await compare(body.password, storedPassword);
+            const early_login_token = generateRandomString(50);
 
             if (!passwordMatch) {
                 ctx.response.status = 400;
@@ -184,6 +186,15 @@ app.use(async (ctx) => {
                 ctx.response.body = {
                     message: "verify_email",
                     email_token: email_token,
+                };
+            } else if (totp_enabled === 1 ) {
+                await db.query(
+                    "UPDATE users SET early_login_token = ? WHERE username = ?",
+                    [early_login_token, body.username]
+                );
+                ctx.response.body = {
+                    message: "2fa",
+                    early_login_token: early_login_token,
                 };
             } else {
                 const session_token = generateRandomString(50);
