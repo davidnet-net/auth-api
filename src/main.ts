@@ -3,6 +3,7 @@ import { Application } from "https://deno.land/x/oak@v12.1.0/mod.ts";
 import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
 import { compare, hash } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
+import { TOTP } from "https://deno.land/x/totp@1.0.1/mod.ts";
 
 //? Modules
 import { connectdb } from "./sql.ts";
@@ -187,10 +188,10 @@ app.use(async (ctx) => {
                     message: "verify_email",
                     email_token: email_token,
                 };
-            } else if (totp_enabled === 1 ) { // if (totp_enabled === 1 || somethingelse === 1 )
+            } else if (totp_enabled === 1) { // if (totp_enabled === 1 || somethingelse === 1 )
                 await db.query(
                     "UPDATE users SET early_login_token = ? WHERE username = ?",
-                    [early_login_token, body.username]
+                    [early_login_token, body.username],
                 );
                 ctx.response.body = {
                     message: "2fa",
@@ -834,55 +835,57 @@ app.use(async (ctx) => {
         ctx.request.url.pathname === "/delete_account"
     ) {
         const body = await ctx.request.body().value as { token?: string };
-    
+
         if (!body.token) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Invalid" };
             return;
         }
-    
+
         const userResult = await db.query(
             "SELECT email, id FROM users WHERE delete_token = ?",
             [body.token],
         );
-    
+
         if (userResult.length === 0) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Invalid" };
             return;
         }
-    
+
         const { email, id } = userResult[0];
-    
+
         try {
             // Verwijder sessies eerst
             await db.query("DELETE FROM sessions WHERE userid = ?", [id]);
-    
+
             // Daarna de gebruiker verwijderen
             const deleteResult = await db.query(
                 "DELETE FROM users WHERE delete_token = ?",
                 [body.token],
             );
-    
+
             if (deleteResult.affectedRows === 0) {
                 throw new Error("Failed to delete user");
             }
-    
+
             // Mail pas versturen als alles succesvol is
-            const MailHtml = await Deno.readTextFile("mails/account_deleted.html");
+            const MailHtml = await Deno.readTextFile(
+                "mails/account_deleted.html",
+            );
             const emailData = {
                 to: email,
                 subject: "Davidnet account deleted!",
                 message: MailHtml,
                 isHtml: true,
             };
-    
+
             const response = await sendEmail(emailData);
-    
+
             if (!response.success) {
                 console.error("Failed to send email:", response.message);
             }
-    
+
             ctx.response.body = { message: "Account deleted" };
         } catch (error) {
             console.error("Error deleting account:", error);
@@ -915,7 +918,79 @@ app.use(async (ctx) => {
         }
 
         ctx.response.body = {
-            message: "ok"
+            message: "ok",
+        };
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/verify_totp"
+    ) {
+        const body = await ctx.request.body().value as {
+            token?: string;
+            code: string;
+        };
+
+        if (!body.token || !body.code) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Missing fields" };
+            return;
+        }
+
+        const userResult = await db.query(
+            "SELECT id, totp_seed, totp_enabled FROM users WHERE early_login_token = ?",
+            [body.token],
+        );
+
+        if (userResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid token" };
+            return;
+        }
+
+        const totp_seed = userResult[0].totp_seed;
+        const totp_enabled = userResult[0].totp_enabled;
+
+        if (totp_enabled == "0") {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "totp not enabled!" };
+            return;
+        }
+
+        const key = await TOTP.importKey(totp_seed);
+
+        const isValid = await TOTP.verifyTOTP(key, body.code, {
+            interval: 30, // Time interval (default is 30 seconds)
+            digits: 6, // Number of digits in the code (default is 6)
+            forward: 2, // Tolerance in the future (number of intervals)
+            backward: 2, // Tolerance in the past (number of intervals)
+        });
+
+        console.log("Is the TOTP code valid?", isValid);
+
+        if (!isValid) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid code" };
+            return;
+        }
+
+        const session_token = generateRandomString(50);
+        const userid = userResult[0].id;
+        const ip = ctx.request.headers.get("X-Forwarded-For");
+        const useragent = ctx.request.headers.get("user-agent");
+
+        const currentUTCDate = new Date();
+        const created_at = currentUTCDate.toISOString().slice(0, 19)
+            .replace("T", " ");
+
+        await db.execute(
+            `INSERT INTO sessions(userid, ip, token, created_at, useragent) VALUES(?, ?, ?, ?, ?)`,
+            [userid, ip, session_token, created_at, useragent],
+        );
+
+        ctx.response.body = {
+            message: "ok",
+            session_token: session_token,
         };
     }
 });
