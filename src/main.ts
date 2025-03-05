@@ -1030,7 +1030,7 @@ app.use(async (ctx) => {
             return;
         }
 
-        let userid = 0
+        let userid = 0;
         if (session_token) {
             userid = sessionResult[0].userid;
         }
@@ -1043,9 +1043,9 @@ app.use(async (ctx) => {
             [userid],
         );
 
-        let totp = false
+        let totp = false;
         if (userResult[0].totp_enabled == "1") {
-            totp = true
+            totp = true;
         }
 
         ctx.response.body = { message: "ok", totp: totp };
@@ -1079,14 +1079,17 @@ app.use(async (ctx) => {
             [sessionResult[0].userid],
         );
 
-        ctx.response.body = { message: "ok"};
+        ctx.response.body = { message: "ok" };
     }
 
     if (
         ctx.request.method === "POST" &&
         ctx.request.url.pathname === "/set_up_totp"
     ) {
-        const body = await ctx.request.body().value as { token?: string, secret?: string };
+        const body = await ctx.request.body().value as {
+            token?: string;
+            secret?: string;
+        };
 
         if (!body.token || !body.secret) {
             ctx.response.status = 400;
