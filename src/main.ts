@@ -7,7 +7,8 @@ import { TOTP } from "https://deno.land/x/totp@1.0.1/mod.ts";
 
 //? Modules
 import { connectdb } from "./sql.ts";
-import { generateRandomString, sendEmail } from "./utils.ts";
+import { generateRandomString } from "./utils.ts";
+import { sendEmail } from "./email.ts";
 
 //? Objects
 const app = new Application();
