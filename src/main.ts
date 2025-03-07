@@ -213,7 +213,13 @@ app.use(async (ctx) => {
                     [userid, ip, session_token, created_at, useragent],
                 );
 
-                addaccountlog(db, userid, "Account login", "User with ip: " + ip + ". Logged in! \n \n Useragent: " + useragent);
+                addaccountlog(
+                    db,
+                    userid,
+                    "Account login",
+                    "User with ip: " + ip + ". Logged in! \n \n Useragent: " +
+                        useragent,
+                );
 
                 ctx.response.body = {
                     message: "ok",
@@ -694,7 +700,12 @@ app.use(async (ctx) => {
             [body.token],
         );
 
-        addaccountlog(db, userid, "Account Recovery", "Account recovery verified!");
+        addaccountlog(
+            db,
+            userid,
+            "Account Recovery",
+            "Account recovery verified!",
+        );
 
         ctx.response.body = { message: "ok" };
     }
@@ -793,7 +804,12 @@ app.use(async (ctx) => {
             console.error("Failed to send email:", response.message);
         }
 
-        addaccountlog(db, userid, "Account Recovery", "Account password reset!");
+        addaccountlog(
+            db,
+            userid,
+            "Account Recovery",
+            "Account password reset!",
+        );
 
         ctx.response.body = { message: "Password reset" };
     }
@@ -996,7 +1012,13 @@ app.use(async (ctx) => {
             [userid, ip, session_token, created_at, useragent],
         );
 
-        addaccountlog(db, userid, "Account login - TOTP", "User with ip: " + ip + ". Logged in! \n \n Useragent: " + useragent);
+        addaccountlog(
+            db,
+            userid,
+            "Account login - TOTP",
+            "User with ip: " + ip + ". Logged in! \n \n Useragent: " +
+                useragent,
+        );
 
         ctx.response.body = {
             message: "ok",

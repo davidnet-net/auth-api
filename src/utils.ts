@@ -12,7 +12,12 @@ export function generateRandomString(length: number): string {
 }
 
 // deno-lint-ignore no-explicit-any
-export function addaccountlog(db: any, userid: string, title: string, message: string) {
+export function addaccountlog(
+    db: any,
+    userid: string,
+    title: string,
+    message: string,
+) {
     const currentUTCDate = new Date();
     const date = currentUTCDate.toISOString().slice(0, 19)
         .replace("T", " ");
