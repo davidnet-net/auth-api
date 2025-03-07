@@ -882,6 +882,7 @@ app.use(async (ctx) => {
         try {
             // Verwijder sessies eerst
             await db.query("DELETE FROM sessions WHERE userid = ?", [id]);
+            await db.query("DELETE FROM accountlogs WHERE userid = ?", [id]);
 
             // Daarna de gebruiker verwijderen
             const deleteResult = await db.query(
