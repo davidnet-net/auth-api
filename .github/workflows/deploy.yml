@@ -17,5 +17,6 @@ jobs:
         run: |
           sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd /home/server1/apis/auth
+            chmod +x Run.sh
             ./Run.sh
           EOF
