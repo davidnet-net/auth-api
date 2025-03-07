@@ -11,8 +11,8 @@ export function generateRandomString(length: number): string {
     return randomString;
 }
 
-// deno-lint-ignore no-explicit-any
 export function addaccountlog(
+    // deno-lint-ignore no-explicit-any
     db: any,
     userid: string,
     title: string,
