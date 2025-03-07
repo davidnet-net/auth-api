@@ -7,7 +7,7 @@ import { TOTP } from "https://deno.land/x/totp@1.0.1/mod.ts";
 
 //? Modules
 import { connectdb } from "./sql.ts";
-import { generateRandomString } from "./utils.ts";
+import { addaccountlog, generateRandomString } from "./utils.ts";
 import { sendEmail } from "./email.ts";
 
 //? Objects
@@ -212,6 +212,8 @@ app.use(async (ctx) => {
                     `INSERT INTO sessions(userid, ip, token, created_at, useragent) VALUES(?, ?, ?, ?, ?)`,
                     [userid, ip, session_token, created_at, useragent],
                 );
+
+                addaccountlog(db, userid, "Account login", "User with ip: " + ip + ". Logged in! \n \n Useragent: " + useragent);
 
                 ctx.response.body = {
                     message: "ok",
@@ -669,7 +671,7 @@ app.use(async (ctx) => {
         };
 
         const userResult = await db.query(
-            "SELECT recovery_token, recovery_verified FROM users WHERE recovery_token = ?",
+            "SELECT id, recovery_token, recovery_verified FROM users WHERE recovery_token = ?",
             [body.token],
         );
 
@@ -679,6 +681,7 @@ app.use(async (ctx) => {
             return;
         }
 
+        const userid = userResult[0].userid;
         const email_verified = userResult[0].recovery_verified;
         if (email_verified == 1) {
             ctx.response.status = 400;
@@ -686,11 +689,12 @@ app.use(async (ctx) => {
             return;
         }
 
-        // Update email_verified to 1
         await db.query(
             "UPDATE users SET recovery_verified = 1 WHERE recovery_token = ?",
             [body.token],
         );
+
+        addaccountlog(db, userid, "Account Recovery", "Account recovery verified!");
 
         ctx.response.body = { message: "ok" };
     }
@@ -754,7 +758,7 @@ app.use(async (ctx) => {
         }
 
         const userResult = await db.query(
-            "SELECT email FROM users WHERE recovery_token = ?",
+            "SELECT id, email FROM users WHERE recovery_token = ?",
             [body.token],
         );
 
@@ -765,6 +769,7 @@ app.use(async (ctx) => {
         }
 
         const email = userResult[0].email;
+        const userid = userResult[0].userid;
         const password = await hash(body.password);
 
         await db.query(
@@ -787,6 +792,8 @@ app.use(async (ctx) => {
         if (!response.success) {
             console.error("Failed to send email:", response.message);
         }
+
+        addaccountlog(db, userid, "Account Recovery", "Account password reset!");
 
         ctx.response.body = { message: "Password reset" };
     }
@@ -989,6 +996,8 @@ app.use(async (ctx) => {
             [userid, ip, session_token, created_at, useragent],
         );
 
+        addaccountlog(db, userid, "Account login - TOTP", "User with ip: " + ip + ". Logged in! \n \n Useragent: " + useragent);
+
         ctx.response.body = {
             message: "ok",
             session_token: session_token,
@@ -1075,10 +1084,14 @@ app.use(async (ctx) => {
             return;
         }
 
+        const userid = sessionResult[0].userid;
+
         await db.query(
             "UPDATE users SET totp_enabled = 0 WHERE id = ?",
-            [sessionResult[0].userid],
+            [userid],
         );
+
+        addaccountlog(db, userid, "Account 2FA", "TOTP - Disabled!");
 
         ctx.response.body = { message: "ok" };
     }
@@ -1115,6 +1128,8 @@ app.use(async (ctx) => {
             "UPDATE users SET totp_seed = ?, totp_enabled = 1 WHERE id = ?",
             [body.secret, userid],
         );
+
+        addaccountlog(db, userid, "Account 2FA", "TOTP - Enabled!");
 
         ctx.response.body = {
             message: "ok",
