@@ -1192,8 +1192,8 @@ app.use(async (ctx) => {
         );
 
         if (logsselect.length === 0) {
-            ctx.response.status = 400;
-            ctx.response.body = { error: "No logs found" };
+            ctx.response.status = 200;
+            ctx.response.body = { message: "ok", logs: [] };
             return;
         }
 
