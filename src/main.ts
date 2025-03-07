@@ -1198,7 +1198,7 @@ app.use(async (ctx) => {
         }
 
         ctx.response.status = 200;
-        ctx.response.body = { message: "ok", logs: logsselect[0] };
+        ctx.response.body = { message: "ok", logs: logsselect };
     }
 });
 
