@@ -884,6 +884,36 @@ app.use(async (ctx) => {
             await db.query("DELETE FROM sessions WHERE userid = ?", [id]);
             await db.query("DELETE FROM accountlogs WHERE userid = ?", [id]);
 
+            //! Delete user content
+
+            // ✅ Haal alle content op die bij de gebruiker hoort
+            const contentResult = await db.query(
+                "SELECT id, path FROM usercontent WHERE userid = ?",
+                [id],
+            );
+
+            if (contentResult.length === 0) {
+                ctx.response.body = { message: "No content to delete." };
+                return;
+            }
+
+            // ✅ Verwijder elk bestand van de schijf
+            let deletedFiles = 0;
+            for (const content of contentResult) {
+                try {
+                    await Deno.remove(content.path);
+                    deletedFiles++;
+                    // deno-lint-ignore no-explicit-any
+                } catch (_error: any) {
+                    console.warn(`Failed to delete file: ${content.path}`);
+                }
+            }
+
+            // ✅ Verwijder alle database records van deze gebruiker
+            await db.execute("DELETE FROM usercontent WHERE userid = ?", [
+                id,
+            ]);
+
             // Daarna de gebruiker verwijderen
             const deleteResult = await db.query(
                 "DELETE FROM users WHERE delete_token = ?",
@@ -1263,7 +1293,12 @@ app.use(async (ctx) => {
             [body.url, userid],
         );
 
-        addaccountlog(db, userid, "Profile", "Profile picture updated! \n \n to url: " + body.url);
+        addaccountlog(
+            db,
+            userid,
+            "Profile",
+            "Profile picture updated! \n \n to url: " + body.url,
+        );
 
         ctx.response.body = {
             message: "ok",
@@ -1297,7 +1332,6 @@ app.use(async (ctx) => {
 
         ctx.response.body = { message: "ok", id: userid };
     }
-
 });
 
 // Start the server
