@@ -1201,6 +1201,74 @@ app.use(async (ctx) => {
         ctx.response.status = 200;
         ctx.response.body = { message: "ok", logs: logsselect };
     }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_profile_picture"
+    ) {
+        const body = await ctx.request.body().value as { id?: string };
+
+        if (!body.id) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Missing userid" };
+            return;
+        }
+
+        const sessionResult = await db.query(
+            "SELECT profile_picture FROM users WHERE id = ?",
+            [body.id],
+        );
+
+        if (sessionResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid userid" };
+            return;
+        }
+
+        const profile_picture = sessionResult[0].profile_picture;
+
+        ctx.response.body = { message: "ok", profile_picture: profile_picture };
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/set_profile_picture"
+    ) {
+        const body = await ctx.request.body().value as {
+            token?: string;
+            url?: string;
+        };
+
+        if (!body.token || !body.url) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Missing fields" };
+            return;
+        }
+
+        const sessionResult = await db.query(
+            "SELECT userid FROM sessions WHERE token = ?",
+            [body.token],
+        );
+
+        if (sessionResult.length === 0) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Invalid session token" };
+            return;
+        }
+
+        const userid = sessionResult[0].userid;
+
+        await db.query(
+            "UPDATE users SET profile_picture = ? WHERE id = ?",
+            [body.url, userid],
+        );
+
+        addaccountlog(db, userid, "Profile", "Profile picture updated! \n \n to url: " + body.url);
+
+        ctx.response.body = {
+            message: "ok",
+        };
+    }
 });
 
 // Start the server
