@@ -859,95 +859,88 @@ app.use(async (ctx) => {
         ctx.request.url.pathname === "/delete_account"
     ) {
         const body = await ctx.request.body().value as { token?: string };
-
+    
         if (!body.token) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Invalid" };
             return;
         }
-
+    
         const userResult = await db.query(
             "SELECT email, id FROM users WHERE delete_token = ?",
             [body.token],
         );
-
+    
         if (userResult.length === 0) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Invalid" };
             return;
         }
-
+    
         const { email, id } = userResult[0];
-
+    
         try {
-            // Verwijder sessies eerst
+            await db.execute("START TRANSACTION");
+    
+            // Verwijder sessies en logs
             await db.query("DELETE FROM sessions WHERE userid = ?", [id]);
             await db.query("DELETE FROM accountlogs WHERE userid = ?", [id]);
-
-            //! Delete user content
-
-            // ✅ Haal alle content op die bij de gebruiker hoort
+    
+            // Haal usercontent op
             const contentResult = await db.query(
-                "SELECT id, path FROM usercontent WHERE userid = ?",
+                "SELECT path FROM usercontent WHERE userid = ?",
                 [id],
             );
-
-            if (contentResult.length === 0) {
-                ctx.response.body = { message: "No content to delete." };
-                return;
-            }
-
-            // ✅ Verwijder elk bestand van de schijf
+    
+            // Verwijder bestanden van schijf
             let deletedFiles = 0;
             for (const content of contentResult) {
                 try {
                     await Deno.remove(content.path);
                     deletedFiles++;
-                    // deno-lint-ignore no-explicit-any
-                } catch (_error: any) {
+                } catch (_error) {
                     console.warn(`Failed to delete file: ${content.path}`);
                 }
             }
-
-            // ✅ Verwijder alle database records van deze gebruiker
-            await db.execute("DELETE FROM usercontent WHERE userid = ?", [
-                id,
-            ]);
-
-            // Daarna de gebruiker verwijderen
+    
+            // Verwijder usercontent records
+            await db.query("DELETE FROM usercontent WHERE userid = ?", [id]);
+    
+            // Verwijder gebruiker
             const deleteResult = await db.query(
                 "DELETE FROM users WHERE delete_token = ?",
                 [body.token],
             );
-
+    
             if (deleteResult.affectedRows === 0) {
                 throw new Error("Failed to delete user");
             }
-
-            // Mail pas versturen als alles succesvol is
-            const MailHtml = await Deno.readTextFile(
-                "mails/account_deleted.html",
-            );
+    
+            await db.execute("COMMIT");
+    
+            // Verstuur de mail pas als alles succesvol is
+            const MailHtml = await Deno.readTextFile("mails/account_deleted.html");
             const emailData = {
                 to: email,
                 subject: "Davidnet account deleted!",
                 message: MailHtml,
                 isHtml: true,
             };
-
+    
             const response = await sendEmail(emailData);
-
             if (!response.success) {
                 console.error("Failed to send email:", response.message);
             }
-
+    
             ctx.response.body = { message: "Account deleted" };
         } catch (error) {
+            await db.execute("ROLLBACK");
             console.error("Error deleting account:", error);
             ctx.response.status = 500;
             ctx.response.body = { error: "Internal server error" };
         }
     }
+    
 
     if (
         ctx.request.method === "POST" &&
