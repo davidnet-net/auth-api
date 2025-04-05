@@ -263,7 +263,7 @@ app.use(async (ctx) => {
     
     if (
         ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_Created_at_from_id"
+        ctx.request.url.pathname === "/get_created_at_from_id"
     ) {
         await get_created_at_from_id(ctx);
     }
