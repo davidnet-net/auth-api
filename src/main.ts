@@ -99,7 +99,7 @@ app.use(async (ctx) => {
         ctx.request.method === "POST" &&
         ctx.request.url.pathname === "/verify_email"
     ) {
-        verify_email(ctx);
+        await verify_email(ctx);
     }
 
     // Get session
