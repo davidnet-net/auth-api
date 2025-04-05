@@ -51,10 +51,10 @@ const port = Number(environment.API_PORT);
 
 //? CORS
 app.use(oakCors({
-    origin: "https://account.davidnet.net", // Only allow this origin
-    methods: ["POST"], // Allow only POST requests
-    allowedHeaders: ["Content-Type"], // Allow the Content-Type header
-    credentials: true, // Allow credentials (cookies, etc.)
+    origin: "https://account.davidnet.net, https://davidnet.net",
+    methods: ["POST"],
+    allowedHeaders: ["Content-Type"],
+    credentials: true,
 }));
 
 //? Routes
@@ -127,7 +127,7 @@ app.use(async (ctx) => {
         await set_profile_picture(ctx);
     }
 
-    
+
     //? Email
     if (
         ctx.request.method === "POST" &&
