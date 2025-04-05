@@ -1,11 +1,9 @@
-import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
-import { DotenvConfig } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
+import { config, DotenvConfig } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
 import { Client } from "https://deno.land/x/mysql@v2.12.1/mod.ts";
-const environment = config();
 
-const db: any = connectdb(environment);
+let db: Client | null = null;
 
-export async function connectdb(enviroment: DotenvConfig) {
+async function connectdb(enviroment: DotenvConfig): Promise<Client> {
     const db_connection = await new Client().connect({
         hostname: enviroment.DB_HOST,
         username: enviroment.DB_USER,
@@ -14,7 +12,6 @@ export async function connectdb(enviroment: DotenvConfig) {
         port: Number(enviroment.DB_PORT),
     });
 
-    // Check if valid connection
     try {
         await db_connection.query(
             `SELECT table_name FROM information_schema.tables WHERE table_schema = ?`,
@@ -27,13 +24,16 @@ export async function connectdb(enviroment: DotenvConfig) {
     }
 
     console.log("OK: Database connected!");
-    return db;
+    return db_connection;
 }
 
-export function getdb() {
+export function getdb(): Client {
     if (db === null) {
         console.error("Error: Database not connected!");
         Deno.exit(1);
     }
     return db;
 }
+
+const environment = config();
+db = await connectdb(environment);
