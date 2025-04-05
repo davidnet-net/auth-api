@@ -39,6 +39,7 @@ import { get_profile_picture } from "./routes/getdata/get_profile_picture.ts";
 import { get_delete_token } from "./routes/getdata/get_delete_token.ts";
 import { get_account_logs } from "./routes/getdata/get_account_logs.ts";
 import { get_desc } from "./routes/getdata/get_desc.ts";
+import { does_user_exists } from "./routes/getdata/does_user_exists.ts";
 
 //? Recovery
 import { start_recovery } from "./routes/recovery/start_recovery.ts";
@@ -244,6 +245,12 @@ app.use(async (ctx) => {
         await get_desc(ctx);
     }
 
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/does_user_exists"
+    ) {
+        await does_user_exists(ctx);
+    }
 
     //? Recovery
     if (
