@@ -30,7 +30,7 @@ export async function connectdb(enviroment: DotenvConfig) {
     return db;
 }
 
-export async function getdb() {
+export function getdb() {
     if (db === null) {
         console.error("Error: Database not connected!");
         Deno.exit(1);
