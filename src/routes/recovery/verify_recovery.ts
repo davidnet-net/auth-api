@@ -21,7 +21,7 @@ export async function verify_recovery(ctx: any) {
         return;
     }
 
-    const userid = userResult[0].userid;
+    const userid = userResult[0].id;
     const email_verified = userResult[0].recovery_verified;
     if (email_verified == 1) {
         ctx.response.status = 400;
