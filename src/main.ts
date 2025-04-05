@@ -40,6 +40,7 @@ import { get_delete_token } from "./routes/getdata/get_delete_token.ts";
 import { get_account_logs } from "./routes/getdata/get_account_logs.ts";
 import { get_desc } from "./routes/getdata/get_desc.ts";
 import { does_user_exists } from "./routes/getdata/does_user_exists.ts";
+import { get_username_from_id } from "./routes/getdata/get_username_from_id.ts";
 
 //? Recovery
 import { start_recovery } from "./routes/recovery/start_recovery.ts";
@@ -252,6 +253,13 @@ app.use(async (ctx) => {
         await does_user_exists(ctx);
     }
 
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_username_from_id"
+    ) {
+        await get_username_from_id(ctx);
+    }
+    
     //? Recovery
     if (
         ctx.request.method === "POST" &&
