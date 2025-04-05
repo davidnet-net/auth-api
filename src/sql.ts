@@ -1,6 +1,8 @@
+//? Libaries
 import { config, DotenvConfig } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
 import { Client } from "https://deno.land/x/mysql@v2.12.1/mod.ts";
 
+//? Objects
 let db: Client | null = null;
 
 async function connectdb(enviroment: DotenvConfig): Promise<Client> {
