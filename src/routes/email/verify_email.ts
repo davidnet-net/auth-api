@@ -11,7 +11,7 @@ export async function verify_email(ctx: any) {
     };
     
     const userResult = await db.query(
-        "SELECT email_verified FROM users WHERE email_token = ?",
+        "SELECT id, email, email_verified FROM users WHERE email_token = ?",
         [body.token],
     );
     
