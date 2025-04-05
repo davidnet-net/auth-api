@@ -1,7 +1,9 @@
+import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
 import { DotenvConfig } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
 import { Client } from "https://deno.land/x/mysql@v2.12.1/mod.ts";
+const environment = config();
 
-var db: any = null;
+const db: any = connectdb(environment);
 
 export async function connectdb(enviroment: DotenvConfig) {
     const db_connection = await new Client().connect({
@@ -25,7 +27,6 @@ export async function connectdb(enviroment: DotenvConfig) {
     }
 
     console.log("OK: Database connected!");
-    db = db_connection;
     return db;
 }
 

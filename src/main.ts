@@ -3,9 +3,6 @@ import { Application } from "https://deno.land/x/oak@v12.1.0/mod.ts";
 import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 
-//? Modules
-import { connectdb } from "./sql.ts";
-
 //? Routes
 //? ./
 import { signup } from "./routes/signup.ts";
@@ -51,7 +48,6 @@ import { recover_password } from "./routes/recovery/recover_password.ts";
 const app = new Application();
 const environment = config();
 const port = Number(environment.API_PORT);
-const _db = await connectdb(environment);
 
 //? CORS
 app.use(oakCors({
