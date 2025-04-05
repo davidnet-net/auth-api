@@ -17,6 +17,7 @@ import { get_sessions } from "./routes/sessions/get_sessions.ts";
 //? Misc Settings
 import { set_profile_picture } from "./routes/misc_settings/set_profile_picture.ts";
 import { delete_account } from "./routes/misc_settings/delete_account.ts";
+import { set_desc } from "./routes/misc_settings/set_desc.ts";
 
 //? Email
 import { email_status } from "./routes/email/email_status.ts";
@@ -37,6 +38,7 @@ import { get_created_at } from "./routes/getdata/get_created_at.ts";
 import { get_profile_picture } from "./routes/getdata/get_profile_picture.ts";
 import { get_delete_token } from "./routes/getdata/get_delete_token.ts";
 import { get_account_logs } from "./routes/getdata/get_account_logs.ts";
+import { get_desc } from "./routes/getdata/get_desc.ts";
 
 //? Recovery
 import { start_recovery } from "./routes/recovery/start_recovery.ts";
@@ -127,6 +129,12 @@ app.use(async (ctx) => {
         await set_profile_picture(ctx);
     }
 
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/set_desc"
+    ) {
+        await set_desc(ctx);
+    }
 
     //? Email
     if (
@@ -227,6 +235,13 @@ app.use(async (ctx) => {
         ctx.request.url.pathname === "/get_account_logs"
     ) {
         await get_account_logs(ctx);
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_desc"
+    ) {
+        await get_desc(ctx);
     }
 
 
