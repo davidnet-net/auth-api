@@ -51,7 +51,7 @@ import { recover_password } from "./routes/recovery/recover_password.ts";
 const app = new Application();
 const environment = config();
 const port = Number(environment.API_PORT);
-await connectdb(environment);
+const _db = await connectdb(environment);
 
 //? CORS
 app.use(oakCors({
