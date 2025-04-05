@@ -11,3 +11,5 @@ Dependencies:
 
 - allow-read
 - allow-net
+
+- MySQL CE Server
