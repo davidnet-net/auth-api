@@ -52,7 +52,7 @@ const port = Number(environment.API_PORT);
 //? CORS
 app.use(oakCors({
     origin: ["https://account.davidnet.net", "https://davidnet.net"],
-    methods: ["POST"],
+    methods: ["POST", "OPTIONS"],
     allowedHeaders: ["Content-Type"],
     credentials: true,
 }));
