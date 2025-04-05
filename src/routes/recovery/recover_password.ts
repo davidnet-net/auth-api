@@ -39,7 +39,7 @@ export async function recover_password(ctx: any) {
     }
 
     const email = userResult[0].email;
-    const userid = userResult[0].userid;
+    const userid = userResult[0].id;
     const password = await hash(body.password);
 
     await db.query(
