@@ -59,78 +59,42 @@ app.use(oakCors({
 
 //? Routes
 app.use(async (ctx) => {
-    // Root
-    if (ctx.request.method === "GET" && ctx.request.url.pathname === "/") {
+    //? General
+    if (ctx.request.method === "GET" &&
+        ctx.request.url.pathname === "/"
+    ) {
         ctx.response.body = { message: "Access denied!" };
         return;
     }
 
-    // Signup
     if (
-        ctx.request.method === "POST" && ctx.request.url.pathname === "/signup"
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/signup"
     ) {
         await signup(ctx);
     }
 
-    // Login
     if (
-        ctx.request.method === "POST" && ctx.request.url.pathname === "/login"
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/login"
     ) {
         await login(ctx);
     }
 
     if (
         ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/email_status"
+        ctx.request.url.pathname === "/is_valid_early_login_token"
     ) {
-        await email_status(ctx);
+        await is_valid_early_login_token(ctx);
     }
 
-    // New email code
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/new_email_code"
-    ) {
-        await new_email_code(ctx);
-    }
 
-    // Verify email
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/verify_email"
-    ) {
-        await verify_email(ctx);
-    }
-
-    // Get session
+    //? Sessions
     if (
         ctx.request.method === "POST" &&
         ctx.request.url.pathname === "/get_session"
     ) {
         await get_session(ctx);
-    }
-
-    // Get email by token
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_email"
-    ) {
-        await get_email(ctx);
-    }
-
-    // Get sessions by user ID
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_sessions"
-    ) {
-        await get_sessions(ctx);
-    }
-
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_created_at"
-    ) {
-        await get_created_at(ctx);
     }
 
     if (
@@ -142,12 +106,131 @@ app.use(async (ctx) => {
 
     if (
         ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_sessions"
+    ) {
+        await get_sessions(ctx);
+    }
+
+
+    //? Misc Settings
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/delete_account"
+    ) {
+        await delete_account(ctx);
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/set_profile_picture"
+    ) {
+        await set_profile_picture(ctx);
+    }
+
+    
+    //? Email
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/email_status"
+    ) {
+        await email_status(ctx);
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/new_email_code"
+    ) {
+        await new_email_code(ctx);
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/verify_email"
+    ) {
+        await verify_email(ctx);
+    }
+
+
+    //? 2FA
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/verify_totp"
+    ) {
+        await verify_totp(ctx);
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/disable_totp"
+    ) {
+        await disable_totp(ctx);
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/set_up_totp"
+    ) {
+        await set_up_totp(ctx);
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_2fa_information"
+    ) {
+        await get_2fa_information(ctx);
+    }
+
+    //? GetData
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_id"
+    ) {
+        await get_id(ctx);
+    }
+
+    if (
+        ctx.request.method === "POST" &&
         ctx.request.url.pathname === "/get_username"
     ) {
         await get_username(ctx);
     }
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_email"
+    ) {
+        await get_email(ctx);
+    }
 
-    // New email code
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_created_at"
+    ) {
+        await get_created_at(ctx);
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_profile_picture"
+    ) {
+        await get_profile_picture(ctx);
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_delete_token"
+    ) {
+        await get_delete_token(ctx);
+    }
+
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_account_logs"
+    ) {
+        await get_account_logs(ctx);
+    }
+
+
+    //? Recovery
     if (
         ctx.request.method === "POST" &&
         ctx.request.url.pathname === "/start_recovery"
@@ -176,83 +259,6 @@ app.use(async (ctx) => {
         await recover_password(ctx);
     }
 
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_delete_token"
-    ) {
-        await get_delete_token(ctx);
-    }
-
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/delete_account"
-    ) {
-        await delete_account(ctx);
-    }
-    
-
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/is_valid_early_login_token"
-    ) {
-        await is_valid_early_login_token(ctx);
-    }
-
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/verify_totp"
-    ) {
-        await verify_totp(ctx);
-    }
-
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_2fa_information"
-    ) {
-        await get_2fa_information(ctx);
-    }
-
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/disable_totp"
-    ) {
-        await disable_totp(ctx);
-    }
-
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/set_up_totp"
-    ) {
-        await set_up_totp(ctx);
-    }
-
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_account_logs"
-    ) {
-        await get_account_logs(ctx);
-    }
-
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_profile_picture"
-    ) {
-        await get_profile_picture(ctx);
-    }
-
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/set_profile_picture"
-    ) {
-        await set_profile_picture(ctx);
-    }
-
-    if (
-        ctx.request.method === "POST" &&
-        ctx.request.url.pathname === "/get_id"
-    ) {
-        await get_id(ctx);
-    }
 });
 
 // Start the server
