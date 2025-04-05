@@ -4,7 +4,7 @@ import { getdb } from "../../sql.ts";
 //? Objects
 const db = await getdb();
 
-export async function get_username_from_id(ctx: any) {
+export async function get_created_at_from_id(ctx: any) {
     const body = await ctx.request.body().value as { id?: string };
 
     if (!body.id) {
