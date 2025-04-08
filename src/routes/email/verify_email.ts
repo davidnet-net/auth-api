@@ -1,3 +1,6 @@
+//? Libaries
+import { Context } from "https://deno.land/x/oak@v12.1.0/mod.ts";
+
 //? Modules
 import { getdb } from "../../sql.ts";
 import { addaccountlog } from "../../utils.ts";
@@ -5,7 +8,7 @@ import { addaccountlog } from "../../utils.ts";
 //? Objects
 const db = await getdb();
 
-export async function verify_email(ctx: any) {
+export async function verify_email(ctx: Context) {
     const body = await ctx.request.body().value as {
         token?: string;
     };

@@ -1,10 +1,13 @@
+//? Libaries
+import { Context } from "https://deno.land/x/oak@v12.1.0/mod.ts";
+
 //? Modules
 import { getdb } from "../../sql.ts";
 
 //? Objects
 const db = await getdb();
 
-export async function delete_session(ctx: any) {
+export async function delete_session(ctx: Context) {
     const body = await ctx.request.body().value as {
         token?: string;
         session_id?: string;

@@ -1,4 +1,7 @@
 //? Libaries
+import { Context } from "https://deno.land/x/oak@v12.1.0/mod.ts";
+
+//? Libaries
 import { hash } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 //? Modules
@@ -9,7 +12,7 @@ import { addaccountlog } from "../../utils.ts";
 //? Objects
 const db = await getdb();
 
-export async function recover_password(ctx: any) {
+export async function recover_password(ctx: Context) {
     const body = await ctx.request.body().value as {
         password?: string;
         token?: string;

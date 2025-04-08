@@ -1,10 +1,13 @@
+//? Libaries
+import { Context } from "https://deno.land/x/oak@v12.1.0/mod.ts";
+
 //? Modules
 import { getdb } from "../../sql.ts";
 
 //? Objects
 const db = await getdb();
 
-export async function get_2fa_information(ctx: any) {
+export async function get_2fa_information(ctx: Context) {
     const body = await ctx.request.body().value as { token?: string };
     //* token can be an early_token or an session_token
 

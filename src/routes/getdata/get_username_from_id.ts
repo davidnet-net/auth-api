@@ -1,10 +1,13 @@
+//? Libaries
+import { Context } from "https://deno.land/x/oak@v12.1.0/mod.ts";
+
 //? Modules
 import { getdb } from "../../sql.ts";
 
 //? Objects
 const db = await getdb();
 
-export async function get_username_from_id(ctx: any) {
+export async function get_username_from_id(ctx: Context) {
     const body = await ctx.request.body().value as { id?: string };
 
     if (!body.id) {

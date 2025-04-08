@@ -1,3 +1,6 @@
+//? Libaries
+import { Context } from "https://deno.land/x/oak@v12.1.0/mod.ts";
+
 //? Modules
 import { sendEmail } from "../../email.ts";
 import { getdb } from "../../sql.ts";
@@ -5,7 +8,7 @@ import { getdb } from "../../sql.ts";
 //? Objects
 const db = await getdb();
 
-export async function delete_account(ctx: any) {
+export async function delete_account(ctx: Context) {
     const body = await ctx.request.body().value as { token?: string };
 
     if (!body.token) {

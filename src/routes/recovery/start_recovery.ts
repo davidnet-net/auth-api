@@ -1,3 +1,6 @@
+//? Libaries
+import { Context } from "https://deno.land/x/oak@v12.1.0/mod.ts";
+
 //? Modules
 import { sendEmail } from "../../email.ts";
 import { getdb } from "../../sql.ts";
@@ -6,7 +9,7 @@ import { generateRandomString } from "../../utils.ts";
 //? Objects
 const db = await getdb();
 
-export async function start_recovery(ctx: any) {
+export async function start_recovery(ctx: Context) {
     const body = await ctx.request.body().value as { email?: string };
 
     if (!body.email) {

@@ -1,5 +1,6 @@
 //? Libraries
 import { TOTP } from "https://deno.land/x/totp@1.0.1/mod.ts";
+import { Context } from "https://deno.land/x/oak@v12.1.0/mod.ts";
 
 //? Modules
 import { getdb } from "../../sql.ts";
@@ -8,7 +9,7 @@ import { addaccountlog, generateRandomString } from "../../utils.ts";
 //? Objects
 const db = await getdb();
 
-export async function verify_totp(ctx: any) {
+export async function verify_totp(ctx: Context) {
     const body = await ctx.request.body().value as {
         token?: string;
         code: string;
