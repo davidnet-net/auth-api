@@ -1,6 +1,6 @@
 //? Libaries
 import { hash } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
-
+import { Context } from "https://deno.land/x/oak@v12.1.0/mod.ts";
 //? Modules
 import { generateRandomString } from "../utils.ts";
 import { sendEmail } from "../email.ts";
@@ -9,7 +9,7 @@ import { getdb } from "../sql.ts";
 //? Objects
 const db = await getdb();
 
-export async function signup(ctx: any) {
+export async function signup(ctx: Context) {
     try {
         const body = await ctx.request.body().value as {
             username?: string;

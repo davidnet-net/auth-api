@@ -1,5 +1,5 @@
 //? Libraries
-import { Application } from "https://deno.land/x/oak@v12.1.0/mod.ts";
+import { Application, Context } from "https://deno.land/x/oak@v12.1.0/mod.ts";
 import { config } from "https://deno.land/x/dotenv@v3.2.2/mod.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 
@@ -63,7 +63,7 @@ app.use(oakCors({
 }));
 
 //? Routes
-app.use(async (ctx) => {
+app.use(async (ctx: Context) => {
     //? General
     if (
         ctx.request.method === "GET" &&
