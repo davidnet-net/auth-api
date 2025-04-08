@@ -7,7 +7,7 @@ const db = await getdb();
 
 export async function delete_account(ctx: any) {
     const body = await ctx.request.body().value as { token?: string };
-    
+
     if (!body.token) {
         ctx.response.status = 400;
         ctx.response.body = { error: "Invalid" };

@@ -2,7 +2,7 @@
 import { compare } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 //? Modules
-import { generateRandomString, addaccountlog } from "../utils.ts";
+import { addaccountlog, generateRandomString } from "../utils.ts";
 import { getdb } from "../sql.ts";
 
 //? Objects

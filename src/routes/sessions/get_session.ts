@@ -4,7 +4,7 @@ import { getdb } from "../../sql.ts";
 //? Objects
 const db = await getdb();
 
-export async function get_session( ctx: any ) {
+export async function get_session(ctx: any) {
     const body = await ctx.request.body().value as { token?: string };
 
     if (!body.token) {

@@ -65,7 +65,8 @@ app.use(oakCors({
 //? Routes
 app.use(async (ctx) => {
     //? General
-    if (ctx.request.method === "GET" &&
+    if (
+        ctx.request.method === "GET" &&
         ctx.request.url.pathname === "/"
     ) {
         ctx.response.body = { message: "Access denied!" };
@@ -93,7 +94,6 @@ app.use(async (ctx) => {
         await is_valid_early_login_token(ctx);
     }
 
-
     //? Sessions
     if (
         ctx.request.method === "POST" &&
@@ -115,7 +115,6 @@ app.use(async (ctx) => {
     ) {
         await get_sessions(ctx);
     }
-
 
     //? Misc Settings
     if (
@@ -160,7 +159,6 @@ app.use(async (ctx) => {
     ) {
         await verify_email(ctx);
     }
-
 
     //? 2FA
     if (
@@ -260,7 +258,7 @@ app.use(async (ctx) => {
     ) {
         await get_username_from_id(ctx);
     }
-    
+
     if (
         ctx.request.method === "POST" &&
         ctx.request.url.pathname === "/get_created_at_from_id"
@@ -296,7 +294,6 @@ app.use(async (ctx) => {
     ) {
         await recover_password(ctx);
     }
-
 });
 
 // Start the server
