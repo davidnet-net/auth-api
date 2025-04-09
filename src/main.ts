@@ -31,6 +31,7 @@ import { set_up_totp } from "./routes/2fa/set_up_totp.ts";
 import { get_2fa_information } from "./routes/2fa/get_2fa_information.ts";
 
 //? GetData
+import { get_userdata_from_token } from "./routes/getdata/get_userdata_from_token.ts";
 import { get_id } from "./routes/getdata/get_id.ts";
 import { get_username } from "./routes/getdata/get_username.ts";
 import { get_email } from "./routes/getdata/get_email.ts";
@@ -190,6 +191,13 @@ app.use(async (ctx: Context) => {
     }
 
     //? GetData
+    if (
+        ctx.request.method === "POST" &&
+        ctx.request.url.pathname === "/get_userdata_from_token"
+    ) {
+        await get_userdata_from_token(ctx);
+    }
+
     if (
         ctx.request.method === "POST" &&
         ctx.request.url.pathname === "/get_id"
