@@ -1,0 +1,98 @@
+import { Context } from "https://deno.land/x/oak@v12.6.1/mod.ts";
+import { getDBClient } from "../lib/db.ts";
+import { hash } from "https://deno.land/x/bcrypt/mod.ts";
+import { log_error } from "../lib/logger.ts";
+
+const AVATAR_PLACEHOLDER = "https://design.davidnet.net/images/logos/external/github/github-mark-dark.svg";
+
+function isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.length <= 254;
+}
+
+export const signup = async (ctx: Context) => {
+    try {
+        const body = await ctx.request.body({ type: "json" }).value;
+        const { email,username, password } = body;
+
+        // Email Validation
+        if (
+            !email || typeof email !== "string" ||
+            !isValidEmail(email)
+        ) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Email is invalid or too long (max 254 characters)." };
+            return;
+        }
+
+        // Username validation
+        if (
+            !username || typeof username !== "string" ||
+            username.length < 4 || username.length > 20
+        ) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Username must be between 4 and 20 characters." };
+            return;
+        }
+
+
+        // Password Validation
+        if (
+            !password || typeof password !== "string" ||
+            password.length === 0
+        ) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "Password is required." };
+            return;
+        }
+
+        // Get the DB after validating
+        const client = await getDBClient();
+        if (!client) {
+            log_error("signup error: DATABASE CONNECTION ERR", ctx.state.correlationID);
+            ctx.response.status = 500;
+            ctx.response.body = { error: "Database connection error." };
+            return;
+        }
+
+        // Check if username or email already exists
+        const existingUsers = await client.query(
+            `SELECT username, email FROM users WHERE username = ? OR email = ? LIMIT 1`,
+            [username, email]
+        );
+
+        if (existingUsers.length > 0) {
+            // Check if fields arent taken yet.
+            const conflict = existingUsers[0];
+            if (conflict.username === username && conflict.email === email) {
+                ctx.response.status = 400;
+                ctx.response.body = { error: "Username and email are already taken." };
+            } else if (conflict.username === username) {
+                ctx.response.status = 400;
+                ctx.response.body = { error: "Username is already taken." };
+            } else if (conflict.email === email) {
+                ctx.response.status = 400;
+                ctx.response.body = { error: "Email is already registered." };
+            }
+            return;
+        }
+
+        const hashedPassword = await hash(password);
+
+        // Insert the user.
+        await client.execute(
+            `INSERT INTO users (username, email, password, display_name, avatar_url) VALUES (?, ?, ?, ?, ?)`,
+            [username, email, hashedPassword, username, AVATAR_PLACEHOLDER],
+        );
+
+        ctx.response.status = 201;
+        ctx.response.body = { message: "User created successfully." };
+
+    } catch (error) {
+        log_error("Signup error:", error, ctx.state.correlationID);
+        ctx.response.status = 500;
+        ctx.response.body = { error: "Internal server error." };
+    }
+};
+
+export default signup;
