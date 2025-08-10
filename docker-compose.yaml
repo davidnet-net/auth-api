@@ -45,6 +45,20 @@ services:
       retries: 3
       start_period: 5s
 
+  phpmyadmin:
+    image: phpmyadmin:latest
+    environment:
+      PMA_HOST: db
+      PMA_USER: ${MYSQL_USER}
+      PMA_PASSWORD: ${MYSQL_PASSWORD}
+      PMA_ABSOLUTE_URI: http://localhost:8080/
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - test-network
+
 volumes:
   db_data:
   logs:

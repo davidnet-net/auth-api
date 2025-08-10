@@ -1,5 +1,5 @@
 import { Client } from "https://deno.land/x/mysql/mod.ts";
-import { log_error } from "./logger.ts";
+import { log, log_error } from "./logger.ts";
 
 let dbClient: Client | null = null;
 let initialConnectionSucceeded = false;
@@ -13,6 +13,9 @@ async function connectToDB(): Promise<Client | null> {
 			db: Deno.env.get("DA_DB_NAME"),
 			port: 3306,
 		});
+		log("Initial Connection SUCCESS")
+
+		await ensureDBStructure(client);
 
 		initialConnectionSucceeded = true;
 		dbClient = client;
@@ -43,13 +46,88 @@ export async function getDBClient(): Promise<Client | null> {
 		}
 	}
 
-	// Attempt (re)connection
 	if (!initialConnectionSucceeded || !dbClient) {
-		console.log("Retrying inital connection");
-		return await connectToDB();
+		log("Trying inital connection");
+		const client = await connectToDB();
+		return client
 	}
 
 	return dbClient;
+}
+
+//? DB initlization
+async function ensureDBStructure(client: Client) {
+	log("Ensuring DB Structure.");
+	try {
+		await client.execute(`
+    CREATE TABLE IF NOT EXISTS users (
+      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+      username VARCHAR(20) NOT NULL UNIQUE,
+      password CHAR(60) NOT NULL,
+      email VARCHAR(254) NOT NULL UNIQUE,
+      email_verified BOOLEAN DEFAULT FALSE,
+      email_verification_token VARCHAR(255),
+      twofa_email_enabled BOOLEAN DEFAULT FALSE,
+      twofa_totp_enabled BOOLEAN DEFAULT FALSE,
+      twofa_totp_seed VARCHAR(255),
+      password_reset_token VARCHAR(60) UNIQUE,
+      password_reset_token_expires DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      display_name VARCHAR(20) NOT NULL,
+      avatar_url VARCHAR(255) NOT NULL
+    )
+  `);
+
+		await client.execute(`
+    CREATE TABLE IF NOT EXISTS files (
+      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+      user_id BIGINT NOT NULL,
+      url VARCHAR(2048) NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      name VARCHAR(2048),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
+		await client.execute(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+      user_id BIGINT NOT NULL,
+      log VARCHAR(255) NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
+		await client.execute(`
+    CREATE TABLE IF NOT EXISTS recovery_codes (
+      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+      user_id BIGINT NOT NULL,
+      hash VARCHAR(255) NOT NULL,
+      used BOOLEAN DEFAULT FALSE,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
+		await client.execute(`
+    CREATE TABLE IF NOT EXISTS sessions (
+      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+      user_id BIGINT NOT NULL,
+      user_agent VARCHAR(255),
+      ip_address VARCHAR(45) NOT NULL,
+      jwt_id VARCHAR(36) NOT NULL UNIQUE,
+      revoked BOOLEAN DEFAULT FALSE,
+      expires_at DATETIME NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+		log("Ensured DB Structure.");
+	} catch (err) {
+		log_error("DB structure creation failed!");
+		log_error(err);
+	}
 }
 
 export default getDBClient;
