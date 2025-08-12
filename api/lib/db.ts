@@ -13,13 +13,15 @@ async function connectToDB(): Promise<Client | null> {
 			db: Deno.env.get("DA_DB_NAME"),
 			port: 3306,
 		});
-		log("Initial Connection SUCCESS")
 
-		await ensureDBStructure(client);
-
-		initialConnectionSucceeded = true;
-		dbClient = client;
-		return client;
+		if (await ensureDBStructure(client)) {
+			log("Initial Connection SUCCESS");
+			initialConnectionSucceeded = true;
+			dbClient = client;
+			return client;
+		} else {
+			throw ("Invalid Initial DB connection? (Maybe DB is starting?)");
+		}
 	} catch (err) {
 		log_error("FAILED TO CONNECT TO DB!");
 		log_error(err); // Log error details
@@ -49,7 +51,7 @@ export async function getDBClient(): Promise<Client | null> {
 	if (!initialConnectionSucceeded || !dbClient) {
 		log("Trying inital connection");
 		const client = await connectToDB();
-		return client
+		return client;
 	}
 
 	return dbClient;
@@ -66,7 +68,8 @@ async function ensureDBStructure(client: Client) {
       password CHAR(60) NOT NULL,
       email VARCHAR(254) NOT NULL UNIQUE,
       email_verified BOOLEAN DEFAULT FALSE,
-      email_verification_token VARCHAR(255),
+      email_verification_token CHAR(64),
+      email_verification_expires DATETIME NOT NULL,
       twofa_email_enabled BOOLEAN DEFAULT FALSE,
       twofa_totp_enabled BOOLEAN DEFAULT FALSE,
       twofa_totp_seed VARCHAR(255),
@@ -124,9 +127,11 @@ async function ensureDBStructure(client: Client) {
     )
   `);
 		log("Ensured DB Structure.");
+		return true;
 	} catch (err) {
 		log_error("DB structure creation failed!");
 		log_error(err);
+		return false;
 	}
 }
 

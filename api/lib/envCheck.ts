@@ -1,4 +1,15 @@
+import { log } from "./logger.ts";
+
 export function envCheck() {
+	//? MISC
+	const DA_ISPROD = Deno.env.get("DA_ISPROD");
+	const DA_JWT_SECRET = Deno.env.get("DA_JWT_SECRET");
+
+	if (!DA_ISPROD || !typeof Boolean) return "DA_ISPROD";
+	if (!DA_JWT_SECRET || !typeof String || DA_JWT_SECRET.length < 64) {
+		return "DA_JWT_SECRET";
+	}
+
 	//? Database
 	const DA_DB_HOST = Deno.env.get("DA_DB_HOST");
 	const DA_DB_USER = Deno.env.get("DA_DB_USER");
@@ -25,6 +36,8 @@ export function envCheck() {
 
 	if (!DA_EMAIL || !typeof String) return "DA_EMAIL";
 	if (!DA_EMAIL_PASSWORD || !typeof String) return "DA_EMAIL_PASSWORD";
+
+	log("Env variables OK");
 }
 
 export default envCheck;

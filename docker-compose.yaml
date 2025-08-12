@@ -18,6 +18,8 @@ services:
     build: api
     environment:
       # Env starting with (DENO ALLOWED) DA_ deno can access.
+      DA_ISPROD: ${ISPROD}
+      DA_JWT_SECRET: ${JWT_SECRET}
       DA_DB_USER: ${MYSQL_USER}
       DA_DB_PASS: ${MYSQL_PASSWORD}
       DA_DB_NAME: ${MYSQL_DATABASE}

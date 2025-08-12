@@ -13,6 +13,7 @@ if (import.meta.main) {
 		throw `Config [${envCheckResult}] is invalid.`;
 	}
 
+	//! TODO: ADD CORS
 	const app = new Application();
 
 	// Global middlewares

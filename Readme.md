@@ -14,6 +14,8 @@
 
 ### Example .env
 ```
+ISPROD=true
+JWT_SECRET="64characterslongstringplz"
 MYSQL_ROOT_PASSWORD="example"
 MYSQL_USER="example"
 MYSQL_PASSWORD="example"
