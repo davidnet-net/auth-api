@@ -109,7 +109,7 @@ export const signup = async (ctx: Context) => {
 				AVATAR_PLACEHOLDER,
 			],
 		);
-		const user_id = result.lastInsertId;
+		const user_id: number | undefined = result.lastInsertId;
 
 		//? Session stuff
 		// Generate JWT
@@ -133,6 +133,7 @@ export const signup = async (ctx: Context) => {
 		const access_token = await createAccessToken({
 			userId: user_id,
 			username,
+			jti: jwtId,
 		});
 
 		// Store session in DB
