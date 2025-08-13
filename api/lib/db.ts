@@ -77,7 +77,8 @@ async function ensureDBStructure(client: Client) {
       password_reset_token_expires DATETIME,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
       display_name VARCHAR(20) NOT NULL,
-      avatar_url VARCHAR(255) NOT NULL
+      avatar_url VARCHAR(255) NOT NULL,
+      description TEXT
     )
   `);
 

@@ -7,6 +7,7 @@ import verify from "./verify.ts";
 // Single Routes
 import signup from "../controllers/signup.ts";
 import refresh from "../controllers/refresh.ts"
+import login from "../controllers/login.ts"
 
 // Router
 const router = new Router();
@@ -20,6 +21,7 @@ router.use("/verify", verify.routes(), verify.allowedMethods());
 
 //? Single Routes
 router.post("/signup", signup);
+router.post("/login", login);
 router.post("/refresh", refresh);
 
 export default router;

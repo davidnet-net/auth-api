@@ -48,6 +48,15 @@ export const refresh = async (ctx: Context) => {
             return;
         }
 
+        let email_verified = 1;
+        if (!payload.email_verified) {
+            const user = await client.query(
+                `SELECT email_verified FROM users WHERE id = ?`,
+                [payload.userId]
+            );
+            email_verified = user[0].email_verified;
+        }
+
         // Update session expires_at to extend session
         //await client.execute(
         //    `UPDATE sessions SET expires_at = DATE_ADD(NOW(), INTERVAL 7 DAY) WHERE jwt_id = ?`,
@@ -60,12 +69,19 @@ export const refresh = async (ctx: Context) => {
         const newAccessToken = await createAccessToken({
             userId: payload.userId,
             username: payload.username,
+            profilePicture: payload.profilePicture,
+            display_name: payload.display_name,
+            email_verified: email_verified,
+            email: payload.email,
             jti: newJwtId,
         });
 
         const newRefreshToken = await createRefreshToken({
             userId: payload.userId,
             username: payload.username,
+            profilePicture: payload.profilePicture,
+            display_name: payload.display_name,
+            email: payload.email,
             jti: newJwtId,
         });
 

@@ -8,7 +8,7 @@ import { loadEmailTemplate, sendEmail } from "../lib/mail.ts";
 import { formatDateWithUTCOffset } from "../lib/time.ts";
 
 const AVATAR_PLACEHOLDER =
-	"https://design.davidnet.net/images/logos/external/github/github-mark-dark.svg";
+	"http://localhost:5173/placeholder.png";
 const DA_ISPROD = Deno.env.get("DA_ISPROD") === "true";
 if (typeof DA_ISPROD !== "boolean") {
 	throw new Error("Invalid env: DA_ISPRO");
@@ -128,11 +128,19 @@ export const signup = async (ctx: Context) => {
 		const refresh_token = await createRefreshToken({
 			userId: user_id,
 			username,
+			display_name: username,
+			profilePicture: AVATAR_PLACEHOLDER,
+			email_verified: 0,
+			email,
 			jti: jwtId,
 		});
 		const access_token = await createAccessToken({
 			userId: user_id,
 			username,
+			display_name: username,
+			profilePicture: AVATAR_PLACEHOLDER,
+			email_verified: 0,
+			email,
 			jti: jwtId,
 		});
 
