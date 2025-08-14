@@ -99,7 +99,7 @@ export const signup = async (ctx: Context) => {
 
 		// Insert the user.
 		const result = await client.execute(
-			`INSERT INTO users (username, email, email_verification_token, email_verification_expires, password, display_name, avatar_url) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 1 DAY), ?, ?, ?)`,
+			`INSERT INTO users (username, email, email_verification_token, email_verification_expires, password, display_name, avatar_url, description) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 1 DAY), ?, ?, ?, "")`,
 			[
 				username,
 				email,
@@ -133,6 +133,8 @@ export const signup = async (ctx: Context) => {
 			email_verified: 0,
 			email,
 			jti: jwtId,
+			admin: 0,
+			internal: 0,
 		});
 		const access_token = await createAccessToken({
 			userId: user_id,
@@ -142,6 +144,8 @@ export const signup = async (ctx: Context) => {
 			email_verified: 0,
 			email,
 			jti: jwtId,
+			admin: 0,
+			internal: 0,
 		});
 
 		// Store session in DB

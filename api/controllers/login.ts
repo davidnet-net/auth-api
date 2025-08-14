@@ -32,8 +32,7 @@ export const login = async (ctx: Context) => {
 
         // Find user by email OR username
         const users = await client.query(
-            `SELECT id, username, display_name, avatar_url, password, email, email_verified 
-			 FROM users 
+            `SELECT * FROM users 
 			 WHERE email = ? OR username = ? 
 			 LIMIT 1`,
             [identifier, identifier],
@@ -76,6 +75,8 @@ export const login = async (ctx: Context) => {
             email_verified: user.email_verified,
             email: user.email,
             jti: jwtId,
+            admin: user.admin,
+            internal: user.internal,
         });
 
         const access_token = await createAccessToken({
@@ -86,6 +87,8 @@ export const login = async (ctx: Context) => {
             email_verified: user.email_verified,
             email: user.email,
             jti: jwtId,
+            admin: user.admin,
+            internal: user.internal,
         });
 
         // Save session

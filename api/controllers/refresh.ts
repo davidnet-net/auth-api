@@ -74,6 +74,8 @@ export const refresh = async (ctx: Context) => {
             email_verified: email_verified,
             email: payload.email,
             jti: newJwtId,
+            admin: payload.admin,
+            internal: payload.internal,
         });
 
         const newRefreshToken = await createRefreshToken({
@@ -83,6 +85,8 @@ export const refresh = async (ctx: Context) => {
             display_name: payload.display_name,
             email: payload.email,
             jti: newJwtId,
+            admin: payload.admin,
+            internal: payload.internal,
         });
 
         const userAgent = ctx.request.headers.get("user-agent") || "";
