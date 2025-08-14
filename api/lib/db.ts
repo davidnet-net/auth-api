@@ -86,6 +86,17 @@ async function ensureDBStructure(client: Client) {
     `);
 
     await client.execute(`
+      CREATE TABLE IF NOT EXISTS user_settings (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        user_id BIGINT NOT NULL,
+        timezone VARCHAR(60) DEFAULT 'UTC',
+        dateFormat VARCHAR(32) DEFAULT 'DD-MM-YYYY HH:mm',
+        firstDay VARCHAR(16) DEFAULT 'monday',
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+
+    await client.execute(`
       CREATE TABLE IF NOT EXISTS files (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         user_id BIGINT NOT NULL,

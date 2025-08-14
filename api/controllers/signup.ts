@@ -1,7 +1,7 @@
 import { Context } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 import { getDBClient } from "../lib/db.ts";
 import { hash } from "https://deno.land/x/bcrypt/mod.ts";
-import { log_error } from "../lib/logger.ts";
+import { log, log_error } from "../lib/logger.ts";
 import { randomHex } from "../lib/random.ts";
 import { createAccessToken, createRefreshToken } from "../lib/jwt.ts";
 import { loadEmailTemplate, sendEmail } from "../lib/mail.ts";
@@ -109,7 +109,16 @@ export const signup = async (ctx: Context) => {
 				AVATAR_PLACEHOLDER,
 			],
 		);
+		log("Created an user");
 		const user_id: number | undefined = result.lastInsertId;
+		log("user_id: " + user_id);
+
+		await client.execute(
+			`INSERT INTO user_settings (user_id) VALUES (?)`,
+			[
+				user_id
+			],
+		);
 
 		//? Session stuff
 		// Generate JWT
@@ -135,6 +144,11 @@ export const signup = async (ctx: Context) => {
 			jti: jwtId,
 			admin: 0,
 			internal: 0,
+			preferences: {
+				timezone: "UTC",
+				dateFormat: "DD-MM-YYYY HH:mm",
+				firstDay: "monday"
+			},
 		});
 		const access_token = await createAccessToken({
 			userId: user_id,
@@ -146,6 +160,11 @@ export const signup = async (ctx: Context) => {
 			jti: jwtId,
 			admin: 0,
 			internal: 0,
+			preferences: {
+				timezone: "UTC",
+				dateFormat: "DD-MM-YYYY HH:mm",
+				firstDay: "monday"
+			},
 		});
 
 		// Store session in DB

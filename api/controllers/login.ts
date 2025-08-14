@@ -46,6 +46,12 @@ export const login = async (ctx: Context) => {
 
         const user = users[0];
 
+        const preferences = await client.query(
+            `SELECT * FROM user_settings 
+			 WHERE id = ? 
+			 LIMIT 1`,
+            [user.id],
+        );
         // Compare password
         const valid = await compare(password, user.password);
         if (!valid) {
@@ -77,6 +83,11 @@ export const login = async (ctx: Context) => {
             jti: jwtId,
             admin: user.admin,
             internal: user.internal,
+            preferences: {
+                timezone: preferences.timezone,
+                dateFormat: preferences.dateFormat,
+                firstDay: preferences.firstDay,
+            },
         });
 
         const access_token = await createAccessToken({
@@ -89,6 +100,11 @@ export const login = async (ctx: Context) => {
             jti: jwtId,
             admin: user.admin,
             internal: user.internal,
+            preferences: {
+                timezone: preferences.timezone,
+                dateFormat: preferences.dateFormat,
+                firstDay: preferences.firstDay,
+            },
         });
 
         // Save session
