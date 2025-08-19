@@ -1,21 +1,21 @@
 <!DOCTYPE html>
 <html>
 	<body>
-		<h1>Email verification!</h1>
-		<p>Here is another email to verify your email for your davidnet account!</p>
-		<a class="verify-button" href="{{verifyemail_url}}">Verify email</a>
+		<h1>Data delivery!</h1>
+        <h3>Hello, {{username}}</h3>
+		<p>Your export download link 📦 is valid for 24 hours.</p>
+		<a class="verify-button" href="{{download_url}}">Download Data Export</a>
 		<div class="SmallSpacer"></div>
 
-		<p>
-			If you do not verify, your account will be deleted on <br><strong
-			>{{expiry_date}}</strong>.
-		</p>
+		<p style="color: red;">Do NOT share your Export. It contains sensitive info.</p>
+
+        <p class="legal">ReferenceID: {{referenceID}}</p>
 
 		<br>
 		<div class="Spacer"></div>
 		<br>
 
-		<span id="legal"><a href="https://davidnet.net/legal/terms_of_service/"
+		<span class="legal"><a href="https://davidnet.net/legal/terms_of_service/"
 			>Terms of Service</a> | <a
 				href="https://davidnet.net/legal/privacy_policy/"
 			>Privacy Policy</a> | <a
@@ -87,7 +87,7 @@
 		margin: 0px;
 	}
 
-	#legal {
+	.legal {
 		font-size: 0.8rem;
 	}
 

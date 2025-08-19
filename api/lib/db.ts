@@ -3,6 +3,7 @@ import { log, log_error } from "./logger.ts";
 
 let dbClient: Client | null = null;
 let initialConnectionSucceeded = false;
+export const DBVersion = 1; //? Used for export version etc
 
 async function connectToDB(): Promise<Client | null> {
   try {

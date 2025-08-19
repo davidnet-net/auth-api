@@ -33,6 +33,7 @@ services:
       - "3000:8000"
     volumes:
       - ./volumes/logs:/app/logs
+      - ./volumes/exports:/app/exports
     depends_on:
       - db
     networks:
@@ -64,6 +65,7 @@ services:
 volumes:
   db_data:
   logs:
+  exports:
 
 networks:
   test-network:
