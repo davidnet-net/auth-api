@@ -155,6 +155,17 @@ async function ensureDBStructure(client: Client) {
       )
     `);
 
+    await client.execute(`
+      CREATE TABLE IF NOT EXISTS compliance_log (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        action TEXT NOT NULL,
+        user_id BIGINT NOT NULL,
+        email_hash CHAR(64),
+        username_hash CHAR(64),
+        created_at  DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        finished_at DATETIME NULL
+      )
+    `);
     log("Ensured DB Structure.");
     return true;
   } catch (err) {
