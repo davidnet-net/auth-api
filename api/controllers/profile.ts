@@ -45,8 +45,21 @@ export const profile = async (ctx: RouterContext<"/profile/:id">) => {
 
     const isSelf = requesterId === profileId;
     let isFriend = false;
+    let isPending = false;
+
     if (!isSelf && requesterId) {
         isFriend = await isConnection(client, requesterId, profileId);
+
+        // Check pending connection
+        const pending = await client.query(
+            `SELECT 1 FROM connections
+             WHERE ((user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?))
+               AND status = 'pending'
+             LIMIT 1`,
+            [requesterId, profileId, profileId, requesterId]
+        );
+
+        isPending = pending.length > 0;
     }
 
     function filterField<T>(value: T, visibility: string, isFriend: boolean, isSelf: boolean): T | null {
@@ -59,7 +72,7 @@ export const profile = async (ctx: RouterContext<"/profile/:id">) => {
     profile.email = filterField(profile.email, profile.email_visible, isFriend, isSelf);
 
     ctx.response.status = 200;
-    ctx.response.body = { profile, isFriend, isSelf };
+    ctx.response.body = { profile, isFriend, isSelf, isPending };
 };
 
 export default profile;
