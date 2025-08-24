@@ -4,8 +4,6 @@ import settings from "./settings.ts"
 import verify from "./verify.ts";
 import connections from "./connections.ts"
 
-//import auth from "../middlewares/auth.ts";
-
 // Single Routes
 import signup from "../controllers/signup.ts";
 import refresh from "../controllers/refresh.ts"
@@ -21,9 +19,6 @@ router.use("/health", health.routes(), health.allowedMethods());
 router.use("/settings", settings.routes(), settings.allowedMethods());
 router.use("/verify", verify.routes(), verify.allowedMethods());
 router.use("/connections", connections.routes(), connections.allowedMethods());
-
-// If AUTH is needed add [auth] like below
-//router.use("/health", auth, health.routes(), health.allowedMethods());
 
 //? Single Routes
 router.post("/signup", signup);
