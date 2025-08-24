@@ -12,7 +12,7 @@ services:
       - ./volumes/db_data:/var/lib/mysql
       - ./mysql_init.sh:/docker-entrypoint-initdb.d/mysql_init.sh
     networks:
-      - test-network
+      - auth-network
 
   api:
     build: api
@@ -30,14 +30,14 @@ services:
       DA_EMAIL: ${EMAIL}
       DA_EMAIL_PASSWORD: ${EMAIL_PASSWORD}
     ports:
-      - "3000:8000"
+      - "3000:1000"
     volumes:
       - ./volumes/logs:/app/logs
       - ./volumes/exports:/app/exports
     depends_on:
       - db
     networks:
-      - test-network
+      - auth-network
     healthcheck:
       test: [
         "CMD-SHELL",
@@ -48,25 +48,11 @@ services:
       retries: 3
       start_period: 5s
 
-  phpmyadmin:
-    image: phpmyadmin:latest
-    environment:
-      PMA_HOST: db
-      PMA_USER: ${MYSQL_USER}
-      PMA_PASSWORD: ${MYSQL_PASSWORD}
-      PMA_ABSOLUTE_URI: http://localhost:8080/
-    ports:
-      - "8080:80"
-    depends_on:
-      - db
-    networks:
-      - test-network
-
 volumes:
   db_data:
   logs:
   exports:
 
 networks:
-  test-network:
+  auth-network:
     driver: bridge
