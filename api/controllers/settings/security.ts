@@ -33,7 +33,7 @@ export const change_password = async (ctx: Context) => {
 
         if (
             !password || typeof password !== "string" ||
-            password.length <6
+            password.length < 6
         ) {
             ctx.response.status = 400;
             ctx.response.body = { error: "Password is required." };
@@ -246,8 +246,8 @@ export const set_twofa_totp_enabled = async (ctx: Context) => {
                 ],
             );
         } else {
-        await client.execute(
-            `UPDATE users SET twofa_totp_enabled = ? WHERE id = ?`,
+            await client.execute(
+                `UPDATE users SET twofa_totp_enabled = ? WHERE id = ?`,
                 [
                     twofa_totp_enabled, userId
                 ],
@@ -266,6 +266,119 @@ export const set_twofa_totp_enabled = async (ctx: Context) => {
         ctx.response.status = 204;
     } catch (error) {
         log_error("Change twofa_email_enabled error:", error, ctx.state.correlationID);
+        ctx.response.status = 500;
+        ctx.response.body = { error: "Internal server error." };
+    }
+};
+
+export const loadSessions = async (ctx: Context) => {
+    const authHeader = ctx.request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+        ctx.response.status = 401;
+        ctx.response.body = { error: "Unauthorized" };
+        return;
+    }
+
+    let userId: number;
+    try {
+        const token = authHeader.slice(7);
+        const payload = await verifyJWT(token);
+        userId = Number(payload.userId);
+    } catch {
+        ctx.response.status = 401;
+        ctx.response.body = { error: "Invalid token" };
+        return;
+    }
+
+    const client = await getDBClient();
+    if (!client) {
+        log_error("loadPreferences error: DATABASE CONNECTION ERR", ctx.state.correlationID);
+        ctx.response.status = 500;
+        ctx.response.body = { error: "Database connection error." };
+        return;
+    }
+
+    try {
+        const result = await client.execute(
+            `SELECT * FROM sessions WHERE user_id = ?`,
+            [userId]
+        );
+
+        if (result.rows && result.rows.length > 0) {
+            ctx.response.status = 200;
+            ctx.response.body = {
+                sessions: result.rows
+            };
+        }
+    } catch (err) {
+        log_error(`loadPreferences DB ERR: ${err}`, ctx.state.correlationID);
+        ctx.response.status = 500;
+        ctx.response.body = { error: "Database query failed." };
+    }
+};
+
+export const delete_session = async (ctx: Context) => {
+    try {
+        const body = await ctx.request.body({ type: "json" }).value;
+        const { sessionID } = body;
+
+        const authHeader = ctx.request.headers.get("authorization");
+        if (!authHeader?.startsWith("Bearer ")) {
+            ctx.response.status = 401;
+            ctx.response.body = { error: "Unauthorized" };
+            return;
+        }
+
+        let userId: number;
+        try {
+            const token = authHeader.slice(7);
+            const payload = await verifyJWT(token);
+            userId = Number(payload.userId);
+        } catch {
+            ctx.response.status = 401;
+            ctx.response.body = { error: "Invalid token" };
+            return;
+        }
+
+        if (
+            !sessionID || typeof sessionID !== "number"
+        ) {
+            ctx.response.status = 400;
+            ctx.response.body = { error: "sessionID is required." };
+            return;
+        }
+
+        // Get the DB after validating
+        const client = await getDBClient();
+        if (!client) {
+            log_error(
+                "delete sessionID error: DATABASE CONNECTION ERR",
+                ctx.state.correlationID,
+            );
+            ctx.response.status = 500;
+            ctx.response.body = { error: "Database connection error." };
+            return;
+        }
+
+        const session = await client.execute(
+            `SELECT id FROM sessions WHERE user_id = ? AND id = ?`,
+            [userId, sessionID],
+        );
+
+
+        if (!session.rows || session.rows.length < 1) {
+            ctx.response.status = 404;
+            ctx.response.body = { error: "Session NOT found." };
+        }
+
+        await client.execute(
+            `DELETE FROM sessions WHERE user_id = ? AND id = ?`,
+            [userId, sessionID],
+        );
+
+        ctx.response.status = 204;
+    } catch (error) {
+        log_error("Delete sessionID error:", error, ctx.state.correlationID);
         ctx.response.status = 500;
         ctx.response.body = { error: "Internal server error." };
     }

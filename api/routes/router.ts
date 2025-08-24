@@ -11,6 +11,7 @@ import signup from "../controllers/signup.ts";
 import refresh from "../controllers/refresh.ts"
 import login from "../controllers/login.ts"
 import profile from "../controllers/profile.ts"
+import logout from "../controllers/logout.ts";
 
 // Router
 const router = new Router();
@@ -26,6 +27,7 @@ router.use("/connections", connections.routes(), connections.allowedMethods());
 
 //? Single Routes
 router.post("/signup", signup);
+router.post("/logout", logout);
 router.post("/login", login);
 router.post("/refresh", refresh);
 router.get("/profile/:id", profile)

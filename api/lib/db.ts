@@ -82,7 +82,8 @@ async function ensureDBStructure(client: Client) {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
         display_name VARCHAR(20) NOT NULL,
         avatar_url VARCHAR(255) NOT NULL,
-        description TEXT
+        description TEXT,
+        timezone_visible ENUM('public', 'connections', 'private') DEFAULT 'connections'
       )
     `);
 
@@ -136,12 +137,13 @@ async function ensureDBStructure(client: Client) {
         user_agent VARCHAR(255),
         ip_address VARCHAR(45) NOT NULL,
         jwt_id VARCHAR(36) NOT NULL UNIQUE,
-        revoked BOOLEAN DEFAULT FALSE,
         expires_at DATETIME NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_updated DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
+
 
     await client.execute(`
       CREATE TABLE IF NOT EXISTS connections (

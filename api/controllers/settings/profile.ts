@@ -24,13 +24,23 @@ export const saveprofile = async (ctx: Context) => {
     }
 
     const body = await ctx.request.body({ type: "json" }).value;
-    const { display_name, description, email_visible } = body;
+    const { display_name, description, email_visible, timezone_visible } = body;
 
-    if (typeof display_name !== "string" || typeof description !== "string" || typeof email_visible !== "string" || description.length > 500) {
+    const allowedVisibility = ["public", "connections", "private"];
+    if (
+        typeof display_name !== "string" ||
+        typeof description !== "string" ||
+        typeof email_visible !== "string" ||
+        typeof timezone_visible !== "string" ||
+        description.length > 500 ||
+        !allowedVisibility.includes(email_visible) ||
+        !allowedVisibility.includes(timezone_visible)
+    ) {
         ctx.response.status = 400;
         ctx.response.body = { error: "Invalid input" };
         return;
     }
+
 
     const client = await getDBClient();
     if (!client) {

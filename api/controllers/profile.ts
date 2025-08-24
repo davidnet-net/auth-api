@@ -28,7 +28,7 @@ export const profile = async (ctx: RouterContext<"/profile/:id">) => {
     }
 
     const profiles = await client.query(
-        `SELECT id, username, email, email_visible, display_name, avatar_url, description, admin, internal, created_at
+        `SELECT id, username, email, email_visible, display_name, avatar_url, description, admin, internal, created_at, timezone_visible
          FROM users
          WHERE id = ?
          LIMIT 1`,
@@ -41,7 +41,16 @@ export const profile = async (ctx: RouterContext<"/profile/:id">) => {
         return;
     }
 
+    const users_settings = await client.query(
+        `SELECT id, timezone
+         FROM user_settings
+         WHERE user_id = ?
+         LIMIT 1`,
+        [profileId]
+    );
+
     const profile = { ...profiles[0] };
+    const user_settings = { ...users_settings[0] };
 
     const isSelf = requesterId === profileId;
     let isFriend = false;
@@ -70,9 +79,10 @@ export const profile = async (ctx: RouterContext<"/profile/:id">) => {
     }
 
     profile.email = filterField(profile.email, profile.email_visible, isFriend, isSelf);
+    user_settings.timezone = filterField(user_settings.timezone, profile.timezone_visible, isFriend, isSelf);
 
     ctx.response.status = 200;
-    ctx.response.body = { profile, isFriend, isSelf, isPending };
+    ctx.response.body = { profile: { ...profile, ...user_settings }, isFriend, isSelf, isPending };
 };
 
 export default profile;
