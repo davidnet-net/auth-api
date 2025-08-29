@@ -13,10 +13,12 @@ export const cors: Middleware = async (ctx, next) => {
         const hostname = url.hostname;
 
         if (hostname === "davidnet.net" || hostname.endsWith(".davidnet.net")) {
-            ctx.response.headers.set("Access-Control-Allow-Origin", requestOrigin);
-            ctx.response.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-            ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-            ctx.response.headers.set("Access-Control-Allow-Credentials", "true");
+            ctx.response.headers = new Headers({
+            "Access-Control-Allow-Origin": requestOrigin,
+            "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, x-correlation-id",
+            "Access-Control-Allow-Credentials": "true"
+            });
         }
     }
 

@@ -1,6 +1,7 @@
 services:
   db:
     image: mysql:8.0
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_USER: ${MYSQL_USER}
@@ -16,6 +17,7 @@ services:
 
   api:
     build: api
+    restart: unless-stopped
     environment:
       # Env starting with (DENO ALLOWED) DA_ deno can access.
       DA_ISPROD: ${ISPROD}
