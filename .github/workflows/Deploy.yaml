@@ -10,11 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code (needed to access repo info, optional)
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Deploy to server via SSH
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
         with:
@@ -24,7 +22,6 @@ jobs:
           script: |
             set -e
 
-            # Get repo name dynamically
             REPO_NAME=$(basename "${{ github.repository }}")
             DEPLOY_PATH="/srv/$REPO_NAME"
 
@@ -38,7 +35,6 @@ jobs:
 
             cd "$DEPLOY_PATH"
 
-            # If it’s a Git repo, pull latest changes; else initialize
             if [ -d ".git" ]; then
               echo "Repo exists, fetching latest changes..."
               git fetch --all
@@ -51,14 +47,12 @@ jobs:
               git reset --hard origin/main
             fi
 
-            # Build and restart Docker Compose services
             echo "Building updated containers..."
             docker compose build --pull
 
             echo "Recreating services..."
             docker compose up -d --remove-orphans
 
-            # Optional: prune unused Docker images
             echo "Pruning unused images..."
             docker image prune -f
 
