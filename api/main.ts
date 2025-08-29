@@ -40,11 +40,10 @@ if (import.meta.main) {
 		Deno.addSignalListener(sig, () => shutdown(sig));
 	}
 
-	log("Server running on http://0.0.0.0:8000");
-
 	// Start server
 	try {
-		await app.listen({ hostname: "0.0.0.0", port: 8000, signal });
+		await app.listen({ hostname: "0.0.0.0", port: 1000, signal });
+		log("Server running on http://0.0.0.0:1000");
 	} catch (err) {
 		if (err instanceof Error) {
 			if (err.name === "AbortError") {
