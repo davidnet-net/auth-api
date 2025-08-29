@@ -1,8 +1,6 @@
 import { Middleware } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 
 const DA_ISPROD = Deno.env.get("DA_ISPROD") === "true";
-
-// Regex to allow davidnet.net and all subdomains
 const allowedHostRegex = /^([a-z0-9-]+\.)*davidnet\.net$/i;
 
 export const cors: Middleware = async (ctx, next) => {
@@ -23,9 +21,13 @@ export const cors: Middleware = async (ctx, next) => {
           "Content-Type, Authorization, x-correlation-id"
         );
         ctx.response.headers.set("Access-Control-Allow-Credentials", "true");
+      } else {
+        ctx.response.status = 403; // Not allowed
+        return;
       }
     } catch {
-      // Invalid origin; do not set CORS headers
+      ctx.response.status = 400; // Invalid origin
+      return;
     }
   }
 
