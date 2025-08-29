@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+        
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
         with:
@@ -22,15 +22,29 @@ jobs:
           script: |
             set -e
 
-            pwd
-            ls -a
+            REPO_NAME=$(basename $GITHUB_REPOSITORY)
+            DEPLOY_PATH="/srv/$REPO_NAME"
 
-            echo "Changing to deployment folder..."
-            cd /srv/auth-api
+            echo "Deployment path: $DEPLOY_PATH"
 
-            echo "Pulling latest changes from main..."
-            git fetch --all
-            git reset --hard origin/main
+            if [ ! -d "$DEPLOY_PATH" ]; then
+              echo "Folder does not exist, cloning repo..."
+              git clone https://github.com/${GITHUB_REPOSITORY}.git $DEPLOY_PATH
+            fi
+
+            cd "$DEPLOY_PATH"
+
+            if [ -d ".git" ]; then
+              echo "Repo exists, fetching latest changes..."
+              git fetch --all
+              git reset --hard origin/main
+            else
+              echo "No Git repo found, initializing..."
+              git init
+              git remote add origin https://github.com/${GITHUB_REPOSITORY}.git
+              git fetch --all
+              git reset --hard origin/main
+            fi
 
             echo "Building updated containers..."
             docker compose build --pull
