@@ -3,6 +3,7 @@ import { getDBClient } from "../lib/db.ts";
 import { compare } from "https://deno.land/x/bcrypt/mod.ts";
 import { log_error } from "../lib/logger.ts";
 import { createAccessToken, createRefreshToken } from "../lib/jwt.ts";
+import { getForwardedIP } from "../lib/internet.ts";
 
 const AVATAR_PLACEHOLDER = "http://localhost:5173/placeholder.png";
 const DA_ISPROD = Deno.env.get("DA_ISPROD") === "true";
@@ -115,7 +116,7 @@ export const login = async (ctx: Context) => {
                 user.id,
                 jwtId,
                 ctx.request.headers.get("user-agent") || "",
-                ctx.request.ip,
+                getForwardedIP(ctx),
             ],
         );
 

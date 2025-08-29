@@ -6,6 +6,7 @@ import { randomHex } from "../lib/random.ts";
 import { createAccessToken, createRefreshToken } from "../lib/jwt.ts";
 import { loadEmailTemplate, sendEmail } from "../lib/mail.ts";
 import { formatDateWithUTCOffset } from "../lib/time.ts";
+import { getForwardedIP } from "../lib/internet.ts";
 
 const AVATAR_PLACEHOLDER =
 	"http://localhost:5173/placeholder.png";
@@ -174,7 +175,7 @@ export const signup = async (ctx: Context) => {
 				user_id,
 				jwtId,
 				ctx.request.headers.get("user-agent") || "",
-				ctx.request.ip,
+				getForwardedIP(ctx),
 			],
 		);
 
