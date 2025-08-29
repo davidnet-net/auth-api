@@ -22,10 +22,12 @@ export const cors: Middleware = async (ctx, next) => {
         );
         ctx.response.headers.set("Access-Control-Allow-Credentials", "true");
       } else {
+        ctx.response.headers.set("Access-Control-Allow-Origin", "*");
         ctx.response.status = 403; // Not allowed
         return;
       }
     } catch {
+      ctx.response.headers.set("Access-Control-Allow-Origin", "*");
       ctx.response.status = 400; // Invalid origin
       return;
     }
