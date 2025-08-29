@@ -2,14 +2,17 @@ import { Middleware } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 
 const DA_ISPROD = Deno.env.get("DA_ISPROD") === "true";
 
-export const cors: Middleware = async (ctx, next) => {
-  const origin = ctx.request.headers.get("origin");
+// Regex to allow davidnet.net and all subdomains
+const allowedHostRegex = /^([a-z0-9-]+\.)*davidnet\.net$/i;
 
-  // Only allow your domains
+export const cors: Middleware = async (ctx, next) => {
+  const origin = ctx.request.headers.get("origin")?.trim();
+
   if (origin) {
     try {
       const host = new URL(origin).hostname;
-      if (!DA_ISPROD || host === "davidnet.net" || host.endsWith(".davidnet.net")) {
+
+      if (!DA_ISPROD || allowedHostRegex.test(host)) {
         ctx.response.headers.set("Access-Control-Allow-Origin", origin);
         ctx.response.headers.set(
           "Access-Control-Allow-Methods",
@@ -21,12 +24,11 @@ export const cors: Middleware = async (ctx, next) => {
         );
         ctx.response.headers.set("Access-Control-Allow-Credentials", "true");
       }
-    } catch (_err) {
-      // ignore invalid origin
+    } catch {
+      // Invalid origin; do not set CORS headers
     }
   }
 
-  // Respond immediately to preflight OPTIONS
   if (ctx.request.method === "OPTIONS") {
     ctx.response.status = 204;
     return;
