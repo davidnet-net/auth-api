@@ -10,9 +10,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout code (needed to access repo info, optional)
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
+      # 2. Deploy to server via SSH
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
         with:
@@ -22,18 +24,21 @@ jobs:
           script: |
             set -e
 
-            REPO_NAME=$(basename $GITHUB_REPOSITORY)
+            # Get repo name dynamically
+            REPO_NAME=$(basename "${{ github.repository }}")
             DEPLOY_PATH="/srv/$REPO_NAME"
 
             echo "Deployment path: $DEPLOY_PATH"
 
+            # If folder does not exist, clone the repo
             if [ ! -d "$DEPLOY_PATH" ]; then
               echo "Folder does not exist, cloning repo..."
-              git clone https://github.com/${GITHUB_REPOSITORY}.git $DEPLOY_PATH
+              git clone https://github.com/${{ github.repository }}.git "$DEPLOY_PATH"
             fi
 
             cd "$DEPLOY_PATH"
 
+            # If it’s a Git repo, pull latest changes; else initialize
             if [ -d ".git" ]; then
               echo "Repo exists, fetching latest changes..."
               git fetch --all
@@ -41,17 +46,19 @@ jobs:
             else
               echo "No Git repo found, initializing..."
               git init
-              git remote add origin https://github.com/${GITHUB_REPOSITORY}.git
+              git remote add origin https://github.com/${{ github.repository }}.git
               git fetch --all
               git reset --hard origin/main
             fi
 
+            # Build and restart Docker Compose services
             echo "Building updated containers..."
             docker compose build --pull
 
             echo "Recreating services..."
             docker compose up -d --remove-orphans
 
+            # Optional: prune unused Docker images
             echo "Pruning unused images..."
             docker image prune -f
 
