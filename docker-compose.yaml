@@ -43,10 +43,10 @@ services:
         "CMD-SHELL",
         "curl -v -f http://localhost:1000/health/docker || exit 1",
       ]
-      interval: 30s
+      interval: 60s
       timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 60s
 
 volumes:
   db_data:
