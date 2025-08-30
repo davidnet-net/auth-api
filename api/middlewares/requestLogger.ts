@@ -9,6 +9,7 @@ export const requestLogger: Middleware = async (ctx: Context, next) => {
 	log(
 		`${ctx.request.method} - ${ctx.request.url} - ${ctx.state.correlationID} - ${getForwardedIP(ctx)} - ${ms}ms`,
 	);
+	console.log(ctx.request.headers.get("x-forwarded-proto"));
 };
 
 export default requestLogger;
