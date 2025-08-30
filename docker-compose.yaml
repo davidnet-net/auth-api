@@ -40,7 +40,9 @@ services:
       - db
     networks:
       - auth-network
-    dns: 192.168.1.141
+    dns:
+      - 192.168.1.141
+      - 1.1.1.1
     healthcheck:
       test: [
         "CMD-SHELL",
