@@ -15,7 +15,7 @@ if (import.meta.main) {
 	}
 
 	//! TODO: ADD CORS
-	const app = new Application();
+	const app = new Application({ proxy: true}); // Trust proxy so it can place secure cookies on an http connection if the original request was https.
 
 	// Global middlewares
 	app.use(cors);
