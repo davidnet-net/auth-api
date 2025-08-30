@@ -24,13 +24,19 @@ export const cors: Middleware = async (ctx, next) => {
       } else {
         ctx.response.headers.set("Access-Control-Allow-Origin", "*");
         ctx.response.status = 403; // Not allowed
+        ctx.response.body = "Not allowed!";
         return;
       }
     } catch {
       ctx.response.headers.set("Access-Control-Allow-Origin", "*");
       ctx.response.status = 400; // Invalid origin
+      ctx.response.body = "CORS origin header is invalid!";
       return;
     }
+  } else {
+    ctx.response.status = 403;
+    ctx.response.headers.set("Access-Control-Allow-Origin", "*");
+    ctx.response.body = "CORS origin header is required!";
   }
 
   if (ctx.request.method === "OPTIONS") {
