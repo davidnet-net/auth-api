@@ -20,11 +20,13 @@ export const health = async (ctx: Context) => {
 	const uptimeMS = uptime();
 	const timestamp = new Date().toISOString();
 
+	ctx.response.status = 200;
 	ctx.response.body = { status, uptimeMS, timestamp, DatabaseHealthy };
 };
 
 export const dockerhealth = async (ctx: Context) => {
-	const DatabaseHealthy: boolean = await isDBHealthy();
+  const DatabaseHealthy: boolean = await isDBHealthy();
 
-	ctx.response.status = DatabaseHealthy ? 204 : 503;
+  ctx.response.status = DatabaseHealthy ? 200 : 503;
+  ctx.response.body = { DatabaseHealthy };
 };
