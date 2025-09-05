@@ -4,16 +4,6 @@ const DA_ISPROD = Deno.env.get("DA_ISPROD") === "true";
 const allowedHostRegex = /^([a-z0-9-]+\.)*davidnet\.net$/i;
 
 export const cors: Middleware = async (ctx, next) => {
-
-  //! Temp secure cookie fix
-  if (!ctx.request.secure) {
-    const proto = ctx.request.headers.get("x-forwarded-proto");
-    if (proto && proto.toLowerCase() === "https") {
-      // @ts-ignore: Oak doesn't allow manually setting .secure, but this works
-      ctx.request.secure = true;
-    }
-  }
-
   const origin = ctx.request.headers.get("origin")?.trim();
 
   if (origin) {
