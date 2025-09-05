@@ -169,6 +169,27 @@ async function ensureDBStructure(client: Client) {
         finished_at DATETIME NULL
       )
     `);
+
+    await client.execute(`
+      CREATE TABLE IF NOT EXISTS reports (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        type VARCHAR(255) NOT NULL,
+        associated_id BIGINT NOT NULL,
+        user_id BIGINT NOT NULL,
+        status ENUM('pending', 'in_review', 'resolved') DEFAULT 'pending',
+        created_at  DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        finished_at DATETIME NULL
+      )
+    `);
+
+    await client.execute(`
+      CREATE TABLE IF NOT EXISTS reports_comments (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        content: TEXT NOT NULL,
+        user_id BIGINT NOT NULL,
+        created_at  DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      )
+    `);
     log("Ensured DB Structure.");
     return true;
   } catch (err) {
