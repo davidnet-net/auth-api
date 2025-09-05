@@ -144,7 +144,7 @@ export const refresh = async (ctx: Context) => {
 		// Set new refresh token cookie
 		ctx.cookies.set("refresh_token", newRefreshToken, {
 			httpOnly: true,
-			secure: DA_ISPROD,
+			secure: ctx.request.secure,
 			sameSite: DA_ISPROD ? "none" : "lax",
 			domain: DA_ISPROD ? ".davidnet.net" : undefined,
 			path: "/",
