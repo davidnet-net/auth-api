@@ -60,7 +60,7 @@ services:
       PMA_PORT: 3306
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
-      - "8080:80"
+      - "8085:80"
     depends_on:
       - db
     networks:
