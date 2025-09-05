@@ -99,17 +99,6 @@ async function ensureDBStructure(client: Client) {
     `);
 
     await client.execute(`
-      CREATE TABLE IF NOT EXISTS files (
-        id BIGINT PRIMARY KEY AUTO_INCREMENT,
-        user_id BIGINT NOT NULL,
-        url VARCHAR(2048) NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        name VARCHAR(2048),
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-      )
-    `);
-
-    await client.execute(`
       CREATE TABLE IF NOT EXISTS audit_logs (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         user_id BIGINT NOT NULL,
