@@ -9,7 +9,7 @@ import { formatDateWithUTCOffset } from "../lib/time.ts";
 import { getForwardedIP } from "../lib/internet.ts";
 
 const AVATAR_PLACEHOLDER =
-	"https://davidnet.net/placeholder.png";
+	"https://account.davidnet.net/placeholder.png";
 const DA_ISPROD = Deno.env.get("DA_ISPROD") === "true";
 if (typeof DA_ISPROD !== "boolean") {
 	throw new Error("Invalid env: DA_ISPRO");
