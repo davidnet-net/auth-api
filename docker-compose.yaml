@@ -19,7 +19,6 @@ services:
     build: api
     restart: unless-stopped
     environment:
-      # Env starting with (DENO ALLOWED) DA_ deno can access.
       DA_ISPROD: ${ISPROD}
       DA_JWT_SECRET: ${JWT_SECRET}
       DA_DB_USER: ${MYSQL_USER}
@@ -52,6 +51,20 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - auth-network
 
 volumes:
   db_data:
