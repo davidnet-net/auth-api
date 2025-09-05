@@ -123,7 +123,7 @@ export const login = async (ctx: Context) => {
         // Set cookie
         ctx.cookies.set("refresh_token", refresh_token, {
             httpOnly: true,
-            secure: DA_ISPROD,
+            secure: false,
             
             sameSite: DA_ISPROD ? "none" : "lax",
             domain: DA_ISPROD ? ".davidnet.net" : undefined,
