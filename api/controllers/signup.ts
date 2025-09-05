@@ -209,11 +209,12 @@ export const signup = async (ctx: Context) => {
 
 		// Make first user ADMIN.
 		if (user_id === 1) {
-			await client.execute(
-				`UPDATE users SET admin = TRUE AND internal = TRUE WHERE id = 1`,
-			);
-			log("Made first user admin");
+		await client.execute(
+			`UPDATE users SET admin = TRUE, internal = TRUE WHERE id = 1`,
+		);
+		log("Made first user admin");
 		}
+
 
 		ctx.response.status = 201;
 		ctx.response.body = {
