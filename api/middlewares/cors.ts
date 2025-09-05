@@ -44,14 +44,6 @@ export const cors: Middleware = async (ctx, next) => {
     return;
   }
 
-  // Make secure cookies work. Even if the connection between oak and the proxy isnt http.
-  if (
-    ctx.request.headers.get("x-forwarded-proto")?.toLowerCase() === "https"
-  ) {
-    // @ts-ignore private field override hack
-    ctx.request.secure = true;
-  }
-
   await next();
 };
 
