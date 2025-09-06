@@ -166,7 +166,7 @@ async function ensureDBStructure(client: Client) {
         associated_id BIGINT NOT NULL,
         user_id BIGINT NOT NULL,
         status ENUM('pending', 'in_review', 'resolved') DEFAULT 'pending',
-        created_at  DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
         finished_at DATETIME NULL
       )
     `);
@@ -174,9 +174,9 @@ async function ensureDBStructure(client: Client) {
     await client.execute(`
       CREATE TABLE IF NOT EXISTS reports_comments (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
-        content: TEXT NOT NULL,
+        content TEXT NOT NULL,
         user_id BIGINT NOT NULL,
-        created_at  DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
       )
     `);
     log("Ensured DB Structure.");

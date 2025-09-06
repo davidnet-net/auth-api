@@ -26,3 +26,5 @@ LOG_TO_TERMINAL=true
 EMAIL="example@example.com
 EMAIL_PASSWORD="example"
 ```
+
+To test run ```docker compose down -v && docker build api && docker compose up --build```
