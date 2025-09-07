@@ -51,9 +51,6 @@ jobs:
             docker compose build --pull
 
             echo "Recreating services..."
-            docker compose up -d --remove-orphans
-
-            echo "Pruning unused images..."
-            docker image prune -f
+            docker compose up -d
 
             echo "Deployment finished successfully!"
