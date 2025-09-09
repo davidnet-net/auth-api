@@ -5,7 +5,7 @@ import correlationID from "./middlewares/correlationID.ts";
 import errorHandler from "./middlewares/errorHandler.ts";
 import requestLogger from "./middlewares/requestLogger.ts";
 import envCheck from "./lib/envCheck.ts";
-import cors from "./middlewares/cors.ts";
+import cors, { serverExternalIP } from "./middlewares/cors.ts";
 
 if (import.meta.main) {
 	// Check if .env & config.ts are valid.
@@ -13,6 +13,7 @@ if (import.meta.main) {
 	if (envCheckResult) {
 		throw `Config [${envCheckResult}] is invalid.`;
 	}
+	log("External IP: ", serverExternalIP);
 
 	const app = new Application({ proxy: true}); // Trust proxy so it can place secure cookies on an http connection if the original request was https.
 	app.proxy = true; // Above didn't work
