@@ -221,6 +221,19 @@ export const signup = async (ctx: Context) => {
 			message: "User created successfully.",
 			access_token: access_token
 		};
+
+		
+		// Internal
+		const jwt_to = Deno.env.get("DA_JWT_SECRET"); //TODO Make an better way of internal auth.
+		const kanban = await fetch("https://kanban.davidnet.net/internal/user_creation", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ user_id, jwt_token: jwt_to})
+		});
+
+		if (!kanban.ok) {
+			log_error("Signup error: Couldnt connect to kanban api")
+		}
 	} catch (error) {
 		log_error("Signup error:", error, ctx.state.correlationID);
 		ctx.response.status = 500;

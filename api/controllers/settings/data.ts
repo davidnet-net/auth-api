@@ -101,6 +101,18 @@ export const deleteaccount = async (ctx: Context) => {
 
         ctx.response.status = 200;
         ctx.response.body = { success: true };
+
+        // Internal
+        const jwt_to = Deno.env.get("DA_JWT_SECRET"); //TODO Make an better way of internal auth.
+        const kanban = await fetch("https://kanban.davidnet.net/internal/user_deletion", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id: userId, jwt_token: jwt_to })
+        });
+
+        if (!kanban.ok) {
+            log_error("Delete account error: Couldnt connect to kanban api")
+        }
     } catch (err) {
         log_error(`Delete Account DB ERR: ${err}`, ctx.state.correlationID);
         ctx.response.status = 500;
