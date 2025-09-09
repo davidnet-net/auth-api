@@ -231,6 +231,8 @@ export const signup = async (ctx: Context) => {
 			body: JSON.stringify({ user_id, jwt_token: jwt_to})
 		});
 
+		console.log(kanban.statusText)
+
 		if (!kanban.ok) {
 			log_error("Signup error: Couldnt connect to kanban api")
 		}
