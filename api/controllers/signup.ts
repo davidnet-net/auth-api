@@ -209,10 +209,10 @@ export const signup = async (ctx: Context) => {
 
 		// Make first user ADMIN.
 		if (user_id === 1) {
-		await client.execute(
-			`UPDATE users SET admin = TRUE, internal = TRUE WHERE id = 1`,
-		);
-		log("Made first user admin");
+			await client.execute(
+				`UPDATE users SET admin = TRUE, internal = TRUE WHERE id = 1`,
+			);
+			log("Made first user admin");
 		}
 
 
@@ -222,17 +222,30 @@ export const signup = async (ctx: Context) => {
 			access_token: access_token
 		};
 
-		
-		// Internal
-		const jwt_to = Deno.env.get("DA_JWT_SECRET"); //TODO Make an better way of internal auth.
-		const kanban = await fetch("https://kanban-api.davidnet.net/internal/user_creation", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ user_id, jwt_token: jwt_to})
-		});
 
-		if (!kanban.ok) {
-			log_error("Signup error: Couldnt connect to kanban api", kanban.statusText);
+		// Internal
+		if (DA_ISPROD) {
+			const jwt_to = Deno.env.get("DA_JWT_SECRET"); //TODO Make an better way of internal auth.
+			const kanban = await fetch("https://kanban-api.davidnet.net/internal/user_creation", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ user_id, jwt_token: jwt_to })
+			});
+
+			if (!kanban.ok) {
+				log_error("Signup error: Couldnt connect to kanban api", kanban.statusText);
+			}
+		} else {
+			const jwt_to = Deno.env.get("DA_JWT_SECRET"); //TODO Make an better way of internal auth.
+			const kanban = await fetch("http://localhost:1001/internal/user_creation", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ user_id, jwt_token: jwt_to })
+			});
+
+			if (!kanban.ok) {
+				log_error("Signup error: Couldnt connect to kanban api", kanban.statusText);
+			}
 		}
 	} catch (error) {
 		log_error("Signup error:", error, ctx.state.correlationID);
