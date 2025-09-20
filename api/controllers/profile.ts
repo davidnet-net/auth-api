@@ -85,4 +85,52 @@ export const profile = async (ctx: RouterContext<"/profile/:id">) => {
     ctx.response.body = { profile: { ...profile, ...user_settings }, isFriend, isSelf, isPending };
 };
 
-export default profile;
+export const resolveIdentifier = async (ctx: RouterContext<"/resolve-identifier">) => {
+  const client = await getDBClient();
+  if (!client) {
+    log_error("resolveIdentifier error: DATABASE CONNECTION ERR", ctx.state.correlationID);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Database connection error." };
+    return;
+  }
+
+  // parse JSON body
+  let body: any;
+  try {
+    body = await ctx.request.body({ type: "json" }).value;
+  } catch {
+    ctx.response.status = 400;
+    ctx.response.body = { error: "Invalid JSON body." };
+    return;
+  }
+
+  const identifier = typeof body?.identifier === "string" ? body.identifier.trim() : "";
+  if (!identifier) {
+    ctx.response.status = 400;
+    ctx.response.body = { error: "Missing or invalid 'identifier' field." };
+    return;
+  }
+
+  try {
+    // Use a single query to check both username and email.
+    // Uses parameterized query to avoid SQL injection.
+    const rows = await client.query(
+      `SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1`,
+      [identifier, identifier]
+    );
+
+    if (!rows || rows.length === 0) {
+      ctx.response.status = 404;
+      ctx.response.body = { error: "User not found." };
+      return;
+    }
+
+    const user = rows[0] as { id: number };
+    ctx.response.status = 200;
+    ctx.response.body = { id: Number(user.id) };
+  } catch (err) {
+    log_error("resolveIdentifier error: " + String(err), ctx.state.correlationID);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Internal server error." };
+  }
+};

@@ -8,7 +8,7 @@ import connections from "./connections.ts"
 import signup from "../controllers/signup.ts";
 import refresh from "../controllers/refresh.ts"
 import login from "../controllers/login.ts"
-import profile from "../controllers/profile.ts"
+import { profile, resolveIdentifier } from "../controllers/profile.ts"
 import logout from "../controllers/logout.ts";
 
 // Router
@@ -25,6 +25,7 @@ router.post("/signup", signup);
 router.post("/logout", logout);
 router.post("/login", login);
 router.post("/refresh", refresh);
-router.get("/profile/:id", profile)
+router.get("/profile/:id", profile);
+router.post("/resolve-identifier", resolveIdentifier); 
 
 export default router;
