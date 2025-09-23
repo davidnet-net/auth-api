@@ -3,6 +3,7 @@ import health from "./health.ts";
 import settings from "./settings.ts"
 import verify from "./verify.ts";
 import connections from "./connections.ts"
+import moderate from "./moderate.ts"
 
 // Single Routes
 import signup from "../controllers/signup.ts";
@@ -19,6 +20,7 @@ router.use("/health", health.routes(), health.allowedMethods());
 router.use("/settings", settings.routes(), settings.allowedMethods());
 router.use("/verify", verify.routes(), verify.allowedMethods());
 router.use("/connections", connections.routes(), connections.allowedMethods());
+router.use("/moderate", moderate.routes(), moderate.allowedMethods());
 
 //? Single Routes
 router.post("/signup", signup);
