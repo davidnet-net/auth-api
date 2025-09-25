@@ -229,7 +229,7 @@ async function setDBVersion(client: Client, version: number) {
 async function migrateDB(client: Client, fromVersion: number) {
   log(`Migrating DB from version ${fromVersion} to ${DBVersion}`);
 
-  if (fromVersion < 2) {
+  if (fromVersion < 3) {
     // Example migration
     log("Applying migration for version 1: Emoji Patch");
     const res = await client.execute(`
