@@ -3,7 +3,7 @@ import { log, log_error } from "./logger.ts";
 
 let dbClient: Client | null = null;
 let initialConnectionSucceeded = false;
-export const DBVersion = 1; //? Used for export version etc
+export const DBVersion = 2; //? Used for export version etc
 
 async function connectToDB(): Promise<Client | null> {
   try {
@@ -229,7 +229,7 @@ async function setDBVersion(client: Client, version: number) {
 async function migrateDB(client: Client, fromVersion: number) {
   log(`Migrating DB from version ${fromVersion} to ${DBVersion}`);
 
-  if (fromVersion < 3) {
+  if (fromVersion < 2) {
     // Example migration
     log("Applying migration for version 1: Emoji Patch");
     const res = await client.execute(`
