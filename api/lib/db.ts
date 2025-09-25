@@ -16,6 +16,16 @@ async function connectToDB(): Promise<Client | null> {
     });
 
     if (await ensureDBStructure(client)) {
+      // Check for migrations
+      console.log("Checking for migrations")
+      const currentVersion = await getCurrentDBVersion(client);
+      if (currentVersion < DBVersion) {
+        log("Migrating from version: " + String(currentVersion) + " to " + String(DBVersion))
+        await migrateDB(client, currentVersion);
+      } else {
+        log("No migrations")
+      }
+
       log("Initial Connection SUCCESS");
       initialConnectionSucceeded = true;
       dbClient = client;
@@ -179,6 +189,20 @@ async function ensureDBStructure(client: Client) {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL
       )
     `);
+
+    await client.execute(`
+            CREATE TABLE IF NOT EXISTS db_version (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                version INT NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+        `);
+
+    // Ensure at least one row exists
+    await client.execute(`
+            INSERT IGNORE INTO db_version (id, version) VALUES (1, 0)
+        `);
+
     log("Ensured DB Structure.");
     return true;
   } catch (err) {
@@ -186,6 +210,38 @@ async function ensureDBStructure(client: Client) {
     log_error(err);
     return false;
   }
+}
+
+
+// ------------------------
+// MIGRATION HELPERS
+// ------------------------
+async function getCurrentDBVersion(client: Client): Promise<number> {
+  const result = await client.query("SELECT version FROM db_version WHERE id = 1");
+  const row = result[0] as { version: number } | undefined;
+  return row?.version ?? 0;
+}
+
+async function setDBVersion(client: Client, version: number) {
+  await client.execute("UPDATE db_version SET version = ? WHERE id = 1", [version]);
+}
+
+async function migrateDB(client: Client, fromVersion: number) {
+  log(`Migrating DB from version ${fromVersion} to ${DBVersion}`);
+
+  if (fromVersion < 2) {
+    // Example migration
+    log("Applying migration for version 1: altering users.description");
+    await client.execute(`
+            ALTER TABLE users MODIFY description TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+        `);
+  }
+
+  // Future migrations can go here
+  // if (fromVersion < 2) { ... }
+
+  await setDBVersion(client, DBVersion);
+  log(`Migration completed. DB is now at version ${DBVersion}`);
 }
 
 export default getDBClient;
