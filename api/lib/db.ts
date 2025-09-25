@@ -229,7 +229,7 @@ async function setDBVersion(client: Client, version: number) {
 async function migrateDB(client: Client, fromVersion: number) {
   log(`Migrating DB from version ${fromVersion} to ${DBVersion}`);
 
-  if (fromVersion < 2) {
+  if (fromVersion < 1) {
     // Example migration
     log("Applying migration for version 1: altering users.description");
     await client.execute(`
