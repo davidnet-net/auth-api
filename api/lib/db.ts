@@ -229,12 +229,13 @@ async function setDBVersion(client: Client, version: number) {
 async function migrateDB(client: Client, fromVersion: number) {
   log(`Migrating DB from version ${fromVersion} to ${DBVersion}`);
 
-  if (fromVersion < 1) {
+  if (fromVersion < 2) {
     // Example migration
-    log("Applying migration for version 1: altering users.description");
-    await client.execute(`
+    log("Applying migration for version 1: Emoji Patch");
+    const res = await client.execute(`
             ALTER TABLE users MODIFY description TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
-        `);
+    `);
+    log(res);
   }
 
   // Future migrations can go here
