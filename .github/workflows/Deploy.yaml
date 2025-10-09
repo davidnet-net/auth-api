@@ -21,12 +21,12 @@ jobs:
           key: ${{ secrets.DEPLOY_SRV_KEY }}
           script: |
             set -e
-            git config --global --add safe.directory /srv/*
             REPO_NAME=$(basename "${{ github.repository }}")
             DEPLOY_PATH="/srv/$REPO_NAME"
 
             echo "Deployment path: $DEPLOY_PATH"
-
+            git config --global --add safe.directory $DEPLOY_PATH
+            
             # If folder does not exist, clone the repo
             if [ ! -d "$DEPLOY_PATH" ]; then
               echo "Folder does not exist, cloning repo..."
