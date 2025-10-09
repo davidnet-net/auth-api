@@ -7,8 +7,6 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
-     #ports:
-     # - "3306:3306"
     volumes:
       - ./volumes/db_data:/var/lib/mysql
       - ./mysql_init.sh:/docker-entrypoint-initdb.d/mysql_init.sh
@@ -51,6 +49,16 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - "3000:8080"  # Adminer draait van binnen op 8080, buiten op 3000
+    networks:
+      - auth-network
+    depends_on:
+      - db
 
 volumes:
   db_data:
