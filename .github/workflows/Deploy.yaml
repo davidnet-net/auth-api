@@ -21,7 +21,7 @@ jobs:
           key: ${{ secrets.DEPLOY_SRV_KEY }}
           script: |
             set -e
-            git config --global --add safe.directory /srv/
+            git config --global --add safe.directory /srv/*
             REPO_NAME=$(basename "${{ github.repository }}")
             DEPLOY_PATH="/srv/$REPO_NAME"
 
