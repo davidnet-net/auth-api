@@ -139,6 +139,12 @@ export const uploadProfilePicture = async (ctx: RouterContext<"/profile-picture"
  * Returns the user's profile picture file as an image response.
  */
 export const getProfilePicture = async (ctx: RouterContext<"/profile-picture/:filename">) => {
+
+	ctx.response.headers.delete("Access-Control-Allow-Origin");
+	ctx.response.headers.set("Access-Control-Allow-Origin", "*");
+	ctx.response.headers.set("Access-Control-Allow-Methods", "GET,OPTIONS");
+	ctx.response.headers.set("Access-Control-Allow-Credentials", "true");
+
 	try {
 		let filename = ctx.params.filename;
 		log(`getProfilePicture requested: ${filename}, correlationID=${ctx.state.correlationID}`);
