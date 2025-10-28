@@ -8,20 +8,20 @@ import { Client } from "https://deno.land/x/mysql/mod.ts";
  * @returns true if they are friends, false otherwise
  */
 export async function isConnection(
-    client: Client,
-    userId: number,
-    targetId: number
+	client: Client,
+	userId: number,
+	targetId: number,
 ): Promise<boolean> {
-    if (userId === targetId) return true; // self always counts
+	if (userId === targetId) return true; // self always counts
 
-    const result = await client.query(
-        `SELECT 1
+	const result = await client.query(
+		`SELECT 1
          FROM connections 
          WHERE ((user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?))
            AND status = 'accepted'
          LIMIT 1`,
-        [userId, targetId, targetId, userId]
-    );
+		[userId, targetId, targetId, userId],
+	);
 
-    return result.length > 0;
+	return result.length > 0;
 }

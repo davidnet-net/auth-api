@@ -6,38 +6,41 @@ let initialConnectionSucceeded = false;
 export const DBVersion = 2; //? Used for export version etc
 
 async function connectToDB(): Promise<Client | null> {
-  try {
-    const client = await new Client().connect({
-      hostname: Deno.env.get("DA_DB_HOST"),
-      username: Deno.env.get("DA_DB_USER"),
-      password: Deno.env.get("DA_DB_PASS"),
-      db: Deno.env.get("DA_DB_NAME"),
-      port: 3306,
-    });
+	try {
+		const client = await new Client().connect({
+			hostname: Deno.env.get("DA_DB_HOST"),
+			username: Deno.env.get("DA_DB_USER"),
+			password: Deno.env.get("DA_DB_PASS"),
+			db: Deno.env.get("DA_DB_NAME"),
+			port: 3306,
+		});
 
-    if (await ensureDBStructure(client)) {
-      // Check for migrations
-      console.log("Checking for migrations")
-      const currentVersion = await getCurrentDBVersion(client);
-      if (currentVersion < DBVersion) {
-        log("Migrating from version: " + String(currentVersion) + " to " + String(DBVersion))
-        await migrateDB(client, currentVersion);
-      } else {
-        log("No migrations")
-      }
+		if (await ensureDBStructure(client)) {
+			// Check for migrations
+			console.log("Checking for migrations");
+			const currentVersion = await getCurrentDBVersion(client);
+			if (currentVersion < DBVersion) {
+				log(
+					"Migrating from version: " + String(currentVersion) +
+						" to " + String(DBVersion),
+				);
+				await migrateDB(client, currentVersion);
+			} else {
+				log("No migrations");
+			}
 
-      log("Initial Connection SUCCESS");
-      initialConnectionSucceeded = true;
-      dbClient = client;
-      return client;
-    } else {
-      throw ("Invalid Initial DB connection? (Maybe DB is starting?)");
-    }
-  } catch (err) {
-    log_error("FAILED TO CONNECT TO DB!");
-    log_error(err); // Log error details
-    return null;
-  }
+			log("Initial Connection SUCCESS");
+			initialConnectionSucceeded = true;
+			dbClient = client;
+			return client;
+		} else {
+			throw ("Invalid Initial DB connection? (Maybe DB is starting?)");
+		}
+	} catch (err) {
+		log_error("FAILED TO CONNECT TO DB!");
+		log_error(err); // Log error details
+		return null;
+	}
 }
 
 /**
@@ -46,33 +49,33 @@ async function connectToDB(): Promise<Client | null> {
  * If not, attempts to reconnect.
  */
 export async function getDBClient(): Promise<Client | null> {
-  // If we already have a client, test it
-  if (dbClient) {
-    try {
-      await dbClient.execute("SELECT 1");
-      return dbClient;
-    } catch (err) {
-      log_error("DB client exists but failed SELECT 1 — reconnecting.");
-      log_error(err);
-      // Try to reconnect
-      dbClient = null;
-    }
-  }
+	// If we already have a client, test it
+	if (dbClient) {
+		try {
+			await dbClient.execute("SELECT 1");
+			return dbClient;
+		} catch (err) {
+			log_error("DB client exists but failed SELECT 1 — reconnecting.");
+			log_error(err);
+			// Try to reconnect
+			dbClient = null;
+		}
+	}
 
-  if (!initialConnectionSucceeded || !dbClient) {
-    log("Trying inital connection");
-    const client = await connectToDB();
-    return client;
-  }
+	if (!initialConnectionSucceeded || !dbClient) {
+		log("Trying inital connection");
+		const client = await connectToDB();
+		return client;
+	}
 
-  return dbClient;
+	return dbClient;
 }
 
 //? DB initlization
 async function ensureDBStructure(client: Client) {
-  log("Ensuring DB Structure.");
-  try {
-    await client.execute(`
+	log("Ensuring DB Structure.");
+	try {
+		await client.execute(`
       CREATE TABLE IF NOT EXISTS users (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         username VARCHAR(20) NOT NULL UNIQUE,
@@ -97,7 +100,7 @@ async function ensureDBStructure(client: Client) {
       )
     `);
 
-    await client.execute(`
+		await client.execute(`
       CREATE TABLE IF NOT EXISTS user_settings (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         user_id BIGINT NOT NULL,
@@ -108,7 +111,7 @@ async function ensureDBStructure(client: Client) {
       );
     `);
 
-    await client.execute(`
+		await client.execute(`
       CREATE TABLE IF NOT EXISTS audit_logs (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         user_id BIGINT NOT NULL,
@@ -118,7 +121,7 @@ async function ensureDBStructure(client: Client) {
       )
     `);
 
-    await client.execute(`
+		await client.execute(`
       CREATE TABLE IF NOT EXISTS recovery_codes (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         user_id BIGINT NOT NULL,
@@ -129,7 +132,7 @@ async function ensureDBStructure(client: Client) {
       )
     `);
 
-    await client.execute(`
+		await client.execute(`
       CREATE TABLE IF NOT EXISTS sessions (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         user_id BIGINT NOT NULL,
@@ -143,8 +146,7 @@ async function ensureDBStructure(client: Client) {
       )
     `);
 
-
-    await client.execute(`
+		await client.execute(`
       CREATE TABLE IF NOT EXISTS connections (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         user_id BIGINT NOT NULL,
@@ -157,7 +159,7 @@ async function ensureDBStructure(client: Client) {
       )
     `);
 
-    await client.execute(`
+		await client.execute(`
       CREATE TABLE IF NOT EXISTS compliance_log (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         action TEXT NOT NULL,
@@ -169,7 +171,7 @@ async function ensureDBStructure(client: Client) {
       )
     `);
 
-    await client.execute(`
+		await client.execute(`
       CREATE TABLE IF NOT EXISTS reports (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         type VARCHAR(255) NOT NULL,
@@ -181,7 +183,7 @@ async function ensureDBStructure(client: Client) {
       )
     `);
 
-    await client.execute(`
+		await client.execute(`
       CREATE TABLE IF NOT EXISTS reports_comments (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         content TEXT NOT NULL,
@@ -190,7 +192,7 @@ async function ensureDBStructure(client: Client) {
       )
     `);
 
-    await client.execute(`
+		await client.execute(`
             CREATE TABLE IF NOT EXISTS db_version (
                 id INT PRIMARY KEY AUTO_INCREMENT,
                 version INT NOT NULL,
@@ -198,51 +200,54 @@ async function ensureDBStructure(client: Client) {
             )
         `);
 
-    // Ensure at least one row exists
-    await client.execute(`
+		// Ensure at least one row exists
+		await client.execute(`
             INSERT IGNORE INTO db_version (id, version) VALUES (1, 0)
         `);
 
-    log("Ensured DB Structure.");
-    return true;
-  } catch (err) {
-    log_error("DB structure creation failed!");
-    log_error(err);
-    return false;
-  }
+		log("Ensured DB Structure.");
+		return true;
+	} catch (err) {
+		log_error("DB structure creation failed!");
+		log_error(err);
+		return false;
+	}
 }
-
 
 // ------------------------
 // MIGRATION HELPERS
 // ------------------------
 async function getCurrentDBVersion(client: Client): Promise<number> {
-  const result = await client.query("SELECT version FROM db_version WHERE id = 1");
-  const row = result[0] as { version: number } | undefined;
-  return row?.version ?? 0;
+	const result = await client.query(
+		"SELECT version FROM db_version WHERE id = 1",
+	);
+	const row = result[0] as { version: number } | undefined;
+	return row?.version ?? 0;
 }
 
 async function setDBVersion(client: Client, version: number) {
-  await client.execute("UPDATE db_version SET version = ? WHERE id = 1", [version]);
+	await client.execute("UPDATE db_version SET version = ? WHERE id = 1", [
+		version,
+	]);
 }
 
 async function migrateDB(client: Client, fromVersion: number) {
-  log(`Migrating DB from version ${fromVersion} to ${DBVersion}`);
+	log(`Migrating DB from version ${fromVersion} to ${DBVersion}`);
 
-  if (fromVersion < 2) {
-    // Example migration
-    log("Applying migration for version 1: Emoji Patch");
-    const res = await client.execute(`
+	if (fromVersion < 2) {
+		// Example migration
+		log("Applying migration for version 1: Emoji Patch");
+		const res = await client.execute(`
             ALTER TABLE users MODIFY description TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
-    log(res);
-  }
+		log(res);
+	}
 
-  // Future migrations can go here
-  // if (fromVersion < 2) { ... }
+	// Future migrations can go here
+	// if (fromVersion < 2) { ... }
 
-  await setDBVersion(client, DBVersion);
-  log(`Migration completed. DB is now at version ${DBVersion}`);
+	await setDBVersion(client, DBVersion);
+	log(`Migration completed. DB is now at version ${DBVersion}`);
 }
 
 export default getDBClient;

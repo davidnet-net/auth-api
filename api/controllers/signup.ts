@@ -8,8 +8,7 @@ import { loadEmailTemplate, sendEmail } from "../lib/mail.ts";
 import { formatDateWithUTCOffset } from "../lib/time.ts";
 import { getForwardedIP } from "../lib/internet.ts";
 
-const AVATAR_PLACEHOLDER =
-	"https://account.davidnet.net/placeholder.png";
+const AVATAR_PLACEHOLDER = "https://account.davidnet.net/placeholder.png";
 const DA_ISPROD = Deno.env.get("DA_ISPROD") === "true";
 if (typeof DA_ISPROD !== "boolean") {
 	throw new Error("Invalid env: DA_ISPRO");
@@ -117,7 +116,7 @@ export const signup = async (ctx: Context) => {
 		await client.execute(
 			`INSERT INTO user_settings (user_id) VALUES (?)`,
 			[
-				user_id
+				user_id,
 			],
 		);
 
@@ -148,7 +147,7 @@ export const signup = async (ctx: Context) => {
 			preferences: {
 				timezone: "UTC",
 				dateFormat: "DD-MM-YYYY HH:mm",
-				firstDay: "monday"
+				firstDay: "monday",
 			},
 		});
 		const access_token = await createAccessToken({
@@ -164,7 +163,7 @@ export const signup = async (ctx: Context) => {
 			preferences: {
 				timezone: "UTC",
 				dateFormat: "DD-MM-YYYY HH:mm",
-				firstDay: "monday"
+				firstDay: "monday",
 			},
 		});
 
@@ -215,36 +214,46 @@ export const signup = async (ctx: Context) => {
 			log("Made first user admin");
 		}
 
-
 		ctx.response.status = 201;
 		ctx.response.body = {
 			message: "User created successfully.",
-			access_token: access_token
+			access_token: access_token,
 		};
-
 
 		// Internal
 		if (DA_ISPROD) {
 			const jwt_to = Deno.env.get("DA_JWT_SECRET"); //TODO Make an better way of internal auth.
-			const kanban = await fetch("https://kanban-api.davidnet.net/internal/user_creation", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ user_id, jwt_token: jwt_to })
-			});
+			const kanban = await fetch(
+				"https://kanban-api.davidnet.net/internal/user_creation",
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ user_id, jwt_token: jwt_to }),
+				},
+			);
 
 			if (!kanban.ok) {
-				log_error("Signup error: Couldnt connect to kanban api", kanban.statusText);
+				log_error(
+					"Signup error: Couldnt connect to kanban api",
+					kanban.statusText,
+				);
 			}
 		} else {
 			const jwt_to = Deno.env.get("DA_JWT_SECRET"); //TODO Make an better way of internal auth.
-			const kanban = await fetch("http://localhost:1001/internal/user_creation", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ user_id, jwt_token: jwt_to })
-			});
+			const kanban = await fetch(
+				"http://localhost:1001/internal/user_creation",
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ user_id, jwt_token: jwt_to }),
+				},
+			);
 
 			if (!kanban.ok) {
-				log_error("Signup error: Couldnt connect to kanban api", kanban.statusText);
+				log_error(
+					"Signup error: Couldnt connect to kanban api",
+					kanban.statusText,
+				);
 			}
 		}
 	} catch (error) {

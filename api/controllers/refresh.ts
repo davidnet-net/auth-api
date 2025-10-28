@@ -1,7 +1,11 @@
 import { Context } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 import { getDBClient } from "../lib/db.ts";
 import { log_error } from "../lib/logger.ts";
-import { createAccessToken, createRefreshToken, verifyJWT } from "../lib/jwt.ts";
+import {
+	createAccessToken,
+	createRefreshToken,
+	verifyJWT,
+} from "../lib/jwt.ts";
 
 const DA_ISPROD = Deno.env.get("DA_ISPROD") === "true";
 if (typeof DA_ISPROD !== "boolean") {
@@ -70,7 +74,10 @@ export const refresh = async (ctx: Context) => {
 
 		const client = await getDBClient();
 		if (!client) {
-			log_error("refresh error: DATABASE CONNECTION ERR", ctx.state.correlationID);
+			log_error(
+				"refresh error: DATABASE CONNECTION ERR",
+				ctx.state.correlationID,
+			);
 			ctx.response.status = 500;
 			ctx.response.body = { error: "Database connection error." };
 			return;
@@ -79,7 +86,7 @@ export const refresh = async (ctx: Context) => {
 		// Check session in DB
 		const sessions = await client.query(
 			`SELECT * FROM sessions WHERE jwt_id = ? AND user_id = ? AND expires_at > NOW() LIMIT 1`,
-			[payload.jti, payload.userId]
+			[payload.jti, payload.userId],
 		);
 		if (sessions.length === 0) {
 			ctx.response.status = 401;
@@ -104,11 +111,11 @@ export const refresh = async (ctx: Context) => {
 		if (freshData) {
 			const [userRow] = await client.query(
 				`SELECT username, display_name, avatar_url AS profilePicture, email, email_verified, admin, internal FROM users WHERE id = ? LIMIT 1`,
-				[payload.userId]
+				[payload.userId],
 			);
 			const [settingsRow] = await client.query(
 				`SELECT timezone, dateFormat, firstDay FROM user_settings WHERE user_id = ? LIMIT 1`,
-				[payload.userId]
+				[payload.userId],
 			);
 
 			userData = {
@@ -118,8 +125,8 @@ export const refresh = async (ctx: Context) => {
 				profilePicture: userRow.profilePicture,
 				email: userRow.email,
 				email_verified: userRow.email_verified,
-                admin: userRow.admin,
-                internal: userRow.internal,
+				admin: userRow.admin,
+				internal: userRow.internal,
 				preferences: {
 					timezone: settingsRow?.timezone ?? "UTC",
 					dateFormat: settingsRow?.dateFormat ?? "DD/MM/YYYY",
@@ -130,15 +137,21 @@ export const refresh = async (ctx: Context) => {
 
 		// Generate new JWTs
 		const newJwtId = crypto.randomUUID();
-		const newAccessToken = await createAccessToken({ ...userData, jti: newJwtId });
-		const newRefreshToken = await createRefreshToken({ ...userData, jti: newJwtId });
+		const newAccessToken = await createAccessToken({
+			...userData,
+			jti: newJwtId,
+		});
+		const newRefreshToken = await createRefreshToken({
+			...userData,
+			jti: newJwtId,
+		});
 
 		// Update session in DB
 		const userAgent = ctx.request.headers.get("user-agent") || "";
 		const ipAddress = ctx.request.ip;
 		await client.execute(
 			`UPDATE sessions SET jwt_id = ?, expires_at = DATE_ADD(NOW(), INTERVAL 7 DAY), user_agent = ?, ip_address = ? WHERE jwt_id = ? AND user_id = ?`,
-			[newJwtId, userAgent, ipAddress, payload.jti, payload.userId]
+			[newJwtId, userAgent, ipAddress, payload.jti, payload.userId],
 		);
 
 		// Set new refresh token cookie

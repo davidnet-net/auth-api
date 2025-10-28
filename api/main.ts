@@ -15,9 +15,9 @@ if (import.meta.main) {
 	}
 	log("External IP: ", serverExternalIP);
 
-	const app = new Application({ proxy: true}); // Trust proxy so it can place secure cookies on an http connection if the original request was https.
+	const app = new Application({ proxy: true }); // Trust proxy so it can place secure cookies on an http connection if the original request was https.
 	app.proxy = true; // Above didn't work
-	
+
 	// Global middlewares
 	app.use(cors);
 	app.use(correlationID);

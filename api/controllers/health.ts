@@ -25,8 +25,8 @@ export const health = async (ctx: Context) => {
 };
 
 export const dockerhealth = async (ctx: Context) => {
-  const DatabaseHealthy: boolean = await isDBHealthy();
+	const DatabaseHealthy: boolean = await isDBHealthy();
 
-  ctx.response.status = DatabaseHealthy ? 200 : 503;
-  ctx.response.body = { DatabaseHealthy };
+	ctx.response.status = DatabaseHealthy ? 200 : 503;
+	ctx.response.body = { DatabaseHealthy };
 };
