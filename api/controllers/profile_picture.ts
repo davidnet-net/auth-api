@@ -141,6 +141,9 @@ export const uploadProfilePicture = async (ctx: RouterContext<"/profile-picture"
 export const getProfilePicture = async (ctx: RouterContext<"/profile-picture/:filename">) => {
 
 	ctx.response.headers.delete("Access-Control-Allow-Origin");
+    ctx.response.headers.delete("Access-Control-Allow-Methods");
+    ctx.response.headers.delete("Access-Control-Allow-Headers");
+    ctx.response.headers.delete("Access-Control-Allow-Credentials");
 	ctx.response.headers.set("Access-Control-Allow-Origin", "*");
 	ctx.response.headers.set("Access-Control-Allow-Methods", "GET,OPTIONS");
 	ctx.response.headers.set("Access-Control-Allow-Credentials", "true");
