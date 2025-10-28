@@ -117,7 +117,7 @@ export const uploadProfilePicture = async (ctx: RouterContext<"/profile-picture"
 		// Update DB
 		await client.execute(
 			`UPDATE users SET avatar_url = ? WHERE id = ?`,
-			[publicUrl + `?v=${Date.now()}`, userId],
+			[publicUrl, userId],
 		);
 
 		ctx.response.status = 200;
