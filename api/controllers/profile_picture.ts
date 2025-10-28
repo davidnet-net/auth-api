@@ -108,11 +108,12 @@ export const uploadProfilePicture = async (ctx: RouterContext<"/profile-picture"
 			}
 		}
 
-		// Public URL to serve
+		// Public URL to serve, encode filename and add ?v=
 		const baseUrl = Deno.env.get("DA_ISPROD") === "true"
 			? "https://auth.davidnet.net"
 			: "http://localhost:1000";
-		const publicUrl = `${baseUrl}/profile-picture/${fileName}`;
+		const encodedFileName = encodeURIComponent(fileName);
+		const publicUrl = `${baseUrl}/profile-picture/${encodedFileName}?v=${Date.now()}`;
 
 		// Update DB
 		await client.execute(
@@ -131,6 +132,7 @@ export const uploadProfilePicture = async (ctx: RouterContext<"/profile-picture"
 		ctx.response.body = { error: "Internal server error." };
 	}
 };
+
 
 /**
  * GET /profile-picture/:filename
