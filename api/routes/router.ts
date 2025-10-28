@@ -10,6 +10,7 @@ import signup from "../controllers/signup.ts";
 import refresh from "../controllers/refresh.ts"
 import login from "../controllers/login.ts"
 import { profile, resolveIdentifier } from "../controllers/profile.ts"
+import { uploadProfilePicture, getProfilePicture } from "../controllers/profile_picture.ts";
 import logout from "../controllers/logout.ts";
 
 // Router
@@ -21,6 +22,9 @@ router.use("/settings", settings.routes(), settings.allowedMethods());
 router.use("/verify", verify.routes(), verify.allowedMethods());
 router.use("/connections", connections.routes(), connections.allowedMethods());
 router.use("/moderate", moderate.routes(), moderate.allowedMethods());
+router.post("/profile-picture", uploadProfilePicture);
+router.get("/profile-picture/:filename", getProfilePicture);
+
 
 //? Single Routes
 router.post("/signup", signup);

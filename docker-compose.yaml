@@ -33,6 +33,7 @@ services:
     volumes:
       - ./volumes/logs:/app/logs
       - ./volumes/exports:/app/exports
+      - ./volumes/profile_pictures:/app/profile_pictures
     depends_on:
       - db
     networks:

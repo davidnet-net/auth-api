@@ -1,6 +1,6 @@
 {
 	"tasks": {
-		"run": "deno run --allow-net --allow-read=logs,email_templates,exports --allow-write=logs,exports --allow-env='DA_*,ETHEREAL_*' main.ts"
+		"run": "deno run --allow-net --allow-read=logs,email_templates,exports,profile_pictures --allow-write=logs,exports,profile_pictures --allow-env='DA_*,ETHEREAL_*' main.ts"
 	},
 	"imports": {
 		"@std/assert": "jsr:@std/assert@1"
