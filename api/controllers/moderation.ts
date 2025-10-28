@@ -3,6 +3,7 @@ import { getDBClient } from "../lib/db.ts";
 import { log, log_error } from "../lib/logger.ts";
 import { verifyJWT } from "../lib/jwt.ts";
 import { loadEmailTemplate, sendEmail } from "../lib/mail.ts";
+import { delete_profile_picture } from "./profile_picture.ts";
 
 const DA_ISPROD = Deno.env.get("DA_ISPROD") === "true";
 if (typeof DA_ISPROD !== "boolean") {
@@ -84,6 +85,8 @@ export const moderate_DELETE_account = async (ctx: Context) => {
         );
         const ReferenceID = complog.lastInsertId
 
+        await delete_profile_picture(userId, true);
+        
         await sendEmail(
             user[0].email,
             "Davidnet Account Deletion",
@@ -154,5 +157,52 @@ export const moderate_DELETE_account = async (ctx: Context) => {
         log_error(`MODERATE: Delete Account DB ERR: ${err}`, ctx.state.correlationID);
         ctx.response.status = 500;
         ctx.response.body = { error: "Database update error." };
+    }
+};
+
+export const moderate_PROFILE_PICTURE_RESET = async (ctx: Context) => {
+    const authHeader = ctx.request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+        ctx.response.status = 401;
+        ctx.response.body = { error: "Unauthorized" };
+        return;
+    }
+
+    const body = await ctx.request.body({ type: "json" }).value;
+    const { id } = body;
+
+    // Basic validation
+    if (!id) {
+        ctx.response.status = 400;
+        ctx.response.body = { error: "id required." };
+        return;
+    }
+
+    const userId: number = id;
+    try {
+        const token = authHeader.slice(7);
+        const payload = await verifyJWT(token);
+        if (!payload.admin) {
+            ctx.response.status = 401;
+            ctx.response.body = { error: "Not admin" };
+            return;
+        }
+    } catch {
+        ctx.response.status = 401;
+        ctx.response.body = { error: "Invalid token" };
+        return;
+    }
+
+    try {
+        await delete_profile_picture(userId, true); // Reset to placeholder
+
+        ctx.response.status = 200;
+        ctx.response.body = { success: true, message: "Profile picture reset to placeholder." };
+
+        log(ctx.state.correlationID, `MODERATE: Profile picture reset for user ${userId}`);
+    } catch (err) {
+        log_error(`MODERATE: Reset profile picture DB ERR: ${err}`, ctx.state.correlationID);
+        ctx.response.status = 500;
+        ctx.response.body = { error: "Failed to reset profile picture." };
     }
 };

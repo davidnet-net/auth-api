@@ -4,6 +4,7 @@ import { log, log_error } from "../../lib/logger.ts";
 import { verifyJWT } from "../../lib/jwt.ts";
 import { loadEmailTemplate, sendEmail } from "../../lib/mail.ts";
 import { randomHex } from "../../lib/random.ts";
+import { delete_profile_picture } from "../profile_picture.ts";
 
 const DA_ISPROD = Deno.env.get("DA_ISPROD") === "true";
 if (typeof DA_ISPROD !== "boolean") {
@@ -82,6 +83,8 @@ export const deleteaccount = async (ctx: Context) => {
                 referenceID: String(ReferenceID),
             }),
         );
+
+        await delete_profile_picture(userId, true);
 
         //TODO Add an queue???
         await client.execute(

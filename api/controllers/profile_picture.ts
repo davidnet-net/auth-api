@@ -6,6 +6,53 @@ import { log, log_error } from "../lib/logger.ts";
 const UPLOAD_DIR = "profile_pictures";
 await Deno.mkdir(UPLOAD_DIR, { recursive: true });
 
+const PLACEHOLDER_URL = "https://account.davidnet.net/placeholder.png";
+
+/**
+ * Deletes the old profile picture for a user and optionally resets to placeholder
+ */
+export async function delete_profile_picture(userId: number, resettoplaceholder = false) {
+  try {
+    const client = await getDBClient();
+    if (!client) {
+      log_error("delete_profile_picture: DATABASE CONNECTION ERR", userId.toString());
+      return;
+    }
+
+    const result = await client.query(
+      `SELECT avatar_url FROM users WHERE id = ? LIMIT 1`,
+      [userId],
+    );
+
+    if (result.length === 0) return;
+
+    const oldUrl = result[0].avatar_url as string;
+
+    if (oldUrl && !oldUrl.endsWith("placeholder.png")) {
+      const match = oldUrl.match(/\/profile-picture\/(\d+)_([a-z0-9\-]+)\.(\w+)/i);
+      if (match) {
+        const oldFileName = match[0].split("/").pop();
+        if (oldFileName) {
+          try {
+            await Deno.remove(`${UPLOAD_DIR}/${oldFileName}`);
+          } catch {
+            // Ignore missing old file
+          }
+        }
+      }
+    }
+
+    if (resettoplaceholder) {
+      await client.execute(
+        `UPDATE users SET avatar_url = ? WHERE id = ?`,
+        [PLACEHOLDER_URL, userId],
+      );
+    }
+  } catch (err) {
+    log_error("delete_profile_picture error: " + String(err), userId.toString());
+  }
+}
+
 /**
  * POST /profile-picture
  * Uploads and sets the profile picture for the authenticated user.
@@ -83,30 +130,12 @@ export const uploadProfilePicture = async (ctx: RouterContext<"/profile-picture"
 			return;
 		}
 
-		// Get existing avatar to clean up old file if needed
-		const oldAvatar = await client.query(
-			`SELECT avatar_url FROM users WHERE id = ? LIMIT 1`,
-			[userId],
-		);
-
 		// Save new file
 		const fileName = `${userId}_${crypto.randomUUID()}.${ext}`;
 		const filePath = `${UPLOAD_DIR}/${fileName}`;
 		await Deno.writeFile(filePath, file.content);
 
-		// Delete old file if it existed
-		if (oldAvatar.length > 0) {
-			const oldUrl = oldAvatar[0].avatar_url as string;
-			const oldMatch = oldUrl?.match(/\/profile-picture\/(\d+)_([a-z0-9\-]+)\.(\w+)/i);
-			if (oldMatch) {
-				try {
-					const oldFilePath = `${UPLOAD_DIR}/${oldMatch[0].split("/").pop()}`;
-					await Deno.remove(oldFilePath);
-				} catch {
-					// ignore missing old file
-				}
-			}
-		}
+		await delete_profile_picture(userId, false);
 
 		// Public URL to serve, encode filename and add ?v=
 		const baseUrl = Deno.env.get("DA_ISPROD") === "true"

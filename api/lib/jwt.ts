@@ -29,6 +29,7 @@ export interface AccessTokenPayload extends Payload {
 	userId: number | string;
 	username: string;
 	type: "access";
+	admin: boolean;
 }
 
 export interface RefreshTokenPayload extends Payload {
