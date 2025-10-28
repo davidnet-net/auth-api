@@ -1,7 +1,7 @@
 import { RouterContext } from "https://deno.land/x/oak@v12.6.1/mod.ts";
 import { getDBClient } from "../lib/db.ts";
 import { verifyJWT } from "../lib/jwt.ts";
-import { log_error } from "../lib/logger.ts";
+import { log, log_error } from "../lib/logger.ts";
 
 const UPLOAD_DIR = "profile_pictures";
 await Deno.mkdir(UPLOAD_DIR, { recursive: true });
@@ -138,14 +138,25 @@ export const uploadProfilePicture = async (ctx: RouterContext<"/profile-picture"
  */
 export const getProfilePicture = async (ctx: RouterContext<"/profile-picture/:filename">) => {
 	try {
-		const filename = ctx.params.filename;
+		let filename = ctx.params.filename;
+		log(`getProfilePicture requested: ${filename}, correlationID=${ctx.state.correlationID}`);
+
 		if (!filename) {
+			log_error("No filename provided", ctx.state.correlationID);
 			ctx.response.status = 400;
 			ctx.response.body = { error: "Invalid filename." };
 			return;
 		}
 
+		// Strip query parameters to handle cache-busting
+		if (filename.includes("?")) {
+			log(`Stripping query params from filename: ${filename}`);
+			filename = filename.split("?")[0];
+		}
+
 		const filePath = `${UPLOAD_DIR}/${filename}`;
+		log(`Resolved file path: ${filePath}`);
+
 		try {
 			const file = await Deno.readFile(filePath);
 			const ext = filename.split(".").pop()?.toLowerCase();
@@ -156,14 +167,16 @@ export const getProfilePicture = async (ctx: RouterContext<"/profile-picture/:fi
 			else if (ext === "gif") contentType = "image/gif";
 			else if (ext === "jfif" || ext === "jiff") contentType = "image/jpeg";
 
+			log(`Serving file ${filename} with Content-Type ${contentType}`);
 			ctx.response.headers.set("Content-Type", contentType);
 			ctx.response.body = file;
-		} catch {
+		} catch (err) {
+			log_error(`File not found: ${filePath}`, ctx.state.correlationID, err);
 			ctx.response.status = 404;
 			ctx.response.body = { error: "Profile picture not found." };
 		}
 	} catch (err) {
-		log_error("getProfilePicture error: " + String(err), ctx.state.correlationID);
+		log_error("getProfilePicture unexpected error: " + String(err), ctx.state.correlationID);
 		ctx.response.status = 500;
 		ctx.response.body = { error: "Internal server error." };
 	}
