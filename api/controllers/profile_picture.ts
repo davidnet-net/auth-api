@@ -209,6 +209,26 @@ export const getProfilePicture = async (
 			filename = filename.split("?")[0];
 		}
 
+		// If filename is 'placeholder', serve the placeholder image directly
+		if (filename === "placeholder") {
+			const placeholderPath = "./placeholder.png";
+			try {
+				const file = await Deno.readFile(placeholderPath);
+				ctx.response.headers.set("Content-Type", "image/png");
+				ctx.response.body = file;
+				return;
+			} catch (err) {
+				log_error(
+					`Placeholder file not found: ${placeholderPath}`,
+					ctx.state.correlationID,
+					err,
+				);
+				ctx.response.status = 500;
+				ctx.response.body = { error: "Internal server error." };
+				return;
+			}
+		}
+
 		const filePath = `${UPLOAD_DIR}/${filename}`;
 		log(`Resolved file path: ${filePath}`);
 
