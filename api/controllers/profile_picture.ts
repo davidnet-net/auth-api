@@ -6,7 +6,7 @@ import { log, log_error } from "../lib/logger.ts";
 const UPLOAD_DIR = "profile_pictures";
 await Deno.mkdir(UPLOAD_DIR, { recursive: true });
 
-const PLACEHOLDER_URL = "https://account.davidnet.net/placeholder.png";
+const PLACEHOLDER_URL = "https://auth.davidnet.net/profile-picture/placeholder";
 
 /**
  * Deletes the old profile picture for a user and optionally resets to placeholder

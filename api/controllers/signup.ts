@@ -8,7 +8,7 @@ import { loadEmailTemplate, sendEmail } from "../lib/mail.ts";
 import { formatDateWithUTCOffset } from "../lib/time.ts";
 import { getForwardedIP } from "../lib/internet.ts";
 
-const AVATAR_PLACEHOLDER = "https://account.davidnet.net/placeholder.png";
+const AVATAR_PLACEHOLDER = "https://auth.davidnet.net/profile-picture/placeholder";
 const DA_ISPROD = Deno.env.get("DA_ISPROD") === "true";
 if (typeof DA_ISPROD !== "boolean") {
 	throw new Error("Invalid env: DA_ISPRO");
