@@ -112,6 +112,26 @@ async function ensureDBStructure(client: Client) {
     `);
 
 		await client.execute(`
+      CREATE TABLE IF NOT EXISTS policy_version (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        hash CHAR(64) NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      );
+    `);
+
+
+    await client.execute(`
+      CREATE TABLE IF NOT EXISTS user_policy_acceptance (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        user_id BIGINT NOT NULL,
+        policy_hash CHAR(64) NOT NULL,
+        accepted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_user_policy (user_id, policy_hash)
+      );
+    `);
+
+		await client.execute(`
       CREATE TABLE IF NOT EXISTS audit_logs (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         user_id BIGINT NOT NULL,

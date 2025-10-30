@@ -28,6 +28,7 @@ services:
       DA_LOG_TO_TERMINAL: ${LOG_TO_TERMINAL}
       DA_EMAIL: ${EMAIL}
       DA_EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      DA_INTERNAL_TOKEN: ${INTERNAL_TOKEN}
     ports:
       - "1000:1000"
     volumes:
