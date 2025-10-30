@@ -4,7 +4,7 @@ import { sendEmail, loadEmailTemplate } from "../lib/mail.ts";
 import { log_error } from "../lib/logger.ts";
 import { verifyJWT } from "../lib/jwt.ts";
 
-const INTERNAL_TOKEN = Deno.env.get("INTERNAL_TOKEN")!;
+const INTERNAL_TOKEN = Deno.env.get("DA_INTERNAL_TOKEN")!;
 const POLICY_LINK = "https://davidnet.net/legal/";
 const ACCEPT_BASE_LINK = "https://account.davidnet.net/policy/accept";
 

@@ -4,7 +4,7 @@ export function envCheck() {
 	//? MISC
 	const DA_ISPROD = Deno.env.get("DA_ISPROD");
 	const DA_JWT_SECRET = Deno.env.get("DA_JWT_SECRET");
-	const INTERNAL_TOKEN = Deno.env.get("INTERNAL_TOKEN");
+	const INTERNAL_TOKEN = Deno.env.get("DA_INTERNAL_TOKEN");
 
 	if (!DA_ISPROD || !typeof Boolean) return "DA_ISPROD";
 	if (!DA_JWT_SECRET || !typeof String || DA_JWT_SECRET.length < 64) { return "DA_JWT_SECRET"; }
