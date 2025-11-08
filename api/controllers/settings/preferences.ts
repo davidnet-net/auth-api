@@ -36,7 +36,7 @@ export const loadPreferences = async (ctx: Context) => {
 
 	try {
 		const result = await client.execute(
-			`SELECT timezone, dateFormat, firstDay FROM user_settings WHERE user_id = ?`,
+			`SELECT timezone, dateFormat, firstDay, language FROM user_settings WHERE user_id = ?`,
 			[userId],
 		);
 
