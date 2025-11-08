@@ -93,7 +93,7 @@ export const savePreferences = async (ctx: Context) => {
 		typeof timezone !== "string" ||
 		typeof dateFormat !== "string" ||
 		typeof firstDay !== "string" ||
-		typeof language !== "string" 
+		typeof language !== "string"
 	) {
 		ctx.response.status = 400;
 		ctx.response.body = { error: "Invalid input" };
@@ -114,7 +114,7 @@ export const savePreferences = async (ctx: Context) => {
 	try {
 		await client.execute(
 			`UPDATE user_settings 
-     SET timezone = ?, dateFormat = ?, firstDay = ?, language = ?,
+     SET timezone = ?, dateFormat = ?, firstDay = ?, language = ?
      WHERE user_id = ?`,
 			[timezone, dateFormat, firstDay, language, userId],
 		);
