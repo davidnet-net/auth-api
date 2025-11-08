@@ -1,7 +1,20 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@std/bytes@^1.0.5": "1.0.6",
+    "jsr:@std/io@*": "0.225.2",
     "npm:nodemailer@*": "7.0.5"
+  },
+  "jsr": {
+    "@std/bytes@1.0.6": {
+      "integrity": "f6ac6adbd8ccd99314045f5703e23af0a68d7f7e58364b47d2c7f408aeb5820a"
+    },
+    "@std/io@0.225.2": {
+      "integrity": "3c740cd4ee4c082e6cfc86458f47e2ab7cb353dc6234d5e9b1f91a2de5f4d6c7",
+      "dependencies": [
+        "jsr:@std/bytes"
+      ]
+    }
   },
   "npm": {
     "nodemailer@7.0.5": {
@@ -10,6 +23,7 @@
   },
   "redirects": {
     "https://deno.land/std/hash/mod.ts": "https://deno.land/std@0.224.0/hash/mod.ts",
+    "https://deno.land/x/amqp/mod.ts": "https://deno.land/x/amqp@v0.24.0/mod.ts",
     "https://deno.land/x/bcrypt/mod.ts": "https://deno.land/x/bcrypt@v0.4.1/mod.ts",
     "https://deno.land/x/mysql/mod.ts": "https://deno.land/x/mysql@v2.12.1/mod.ts",
     "https://deno.land/x/smtp/mod.ts": "https://deno.land/x/smtp@v0.7.0/mod.ts"
@@ -275,6 +289,27 @@
     "https://deno.land/std@0.81.0/encoding/utf8.ts": "1b7e77db9a12363c67872f8a208886ca1329f160c1ca9133b13d2ed399688b99",
     "https://deno.land/std@0.81.0/io/bufio.ts": "3cbbe1f761c1c636d1e7128ed4e7fdca6bf21d9199aa3cae71e69972a6ae8f93",
     "https://deno.land/std@0.81.0/textproto/mod.ts": "4c378eda3cb6216608bb4c3a34201761c65f6980c4669455ca224c330cd5b790",
+    "https://deno.land/x/amqp@v0.24.0/deps.ts": "3c7f1df8ab027aeb207cad3a0368f0eddebca1b77dfccb49f6786d7162c9e643",
+    "https://deno.land/x/amqp@v0.24.0/mod.ts": "faff39741bf2cc9640917e04fcb8af605fde0ca1809b7e4f347739584b394fad",
+    "https://deno.land/x/amqp@v0.24.0/src/amqp_channel.ts": "a1f3ac0d9490221b58f0fcc026a47ab4a3cf7165d006b532bcbe29acde65771d",
+    "https://deno.land/x/amqp@v0.24.0/src/amqp_codec.ts": "c1c0aae881df2b3ba8a3b0a56ffa0d939e40bd8a893bea649e7eb32020d21028",
+    "https://deno.land/x/amqp@v0.24.0/src/amqp_connect.ts": "4fef3d21f88e42dc938b4498e05c133979d2eb2c811e3084df84047000fa4841",
+    "https://deno.land/x/amqp@v0.24.0/src/amqp_connect_options.ts": "08b21c92c519288b15cb747ca89a40671256ffda1443f16f17074ed54b0fe277",
+    "https://deno.land/x/amqp@v0.24.0/src/amqp_connection.ts": "cdb805abacee6d66c27e979acc0414933bbd53e68446c12fd7a216ad9af39676",
+    "https://deno.land/x/amqp@v0.24.0/src/amqp_constants.ts": "2a1b2c95a27fac8d4179ac3418b6ed92d77e133d77b7733848f6b100a066d3ca",
+    "https://deno.land/x/amqp@v0.24.0/src/amqp_frame.ts": "6d78c6e9d4542070b3a03b3510fc80cce414715c9fedbdfc6525be365454cb59",
+    "https://deno.land/x/amqp@v0.24.0/src/amqp_frame_reader.ts": "89e0fc54cef94fd35aa6bc39d638cf21a663c0a959afde8a2bd362dbbfcd209c",
+    "https://deno.land/x/amqp@v0.24.0/src/amqp_multiplexer.ts": "59697354c82cf7c2858aa5ddf36f7dde22d4946f6a69ac6f1215c95cba839a04",
+    "https://deno.land/x/amqp@v0.24.0/src/amqp_socket.ts": "03c7c405117c96721efe545f6124c48c47eb3ce062ae4786fa009322b2c0a775",
+    "https://deno.land/x/amqp@v0.24.0/src/amqp_types.ts": "0ef672bb09a0861be1b4d065c499bd108764eb9e1b2e4ac4ffda74a32a36d8ca",
+    "https://deno.land/x/amqp@v0.24.0/src/encoding/amqp_decoder.ts": "1deff5e3394f24e34a261f0c7355fb390238c182aec433aeac3d7b22e5c66730",
+    "https://deno.land/x/amqp@v0.24.0/src/encoding/amqp_encoder.ts": "0d9c62652229ec3675b440492046bacfdaf81c60a853667626d0eb9e2320d574",
+    "https://deno.land/x/amqp@v0.24.0/src/encoding/amqp_field_types.ts": "fb02a61b2aec30390b5e35d3414ce734d26e1b53dd8ffc48280060c6673f5263",
+    "https://deno.land/x/amqp@v0.24.0/src/encoding/mod.ts": "1951e9db3dace0027e98c42098c6021ec3b6bfad43bf869060840cd020c5f36a",
+    "https://deno.land/x/amqp@v0.24.0/src/encoding/utils.ts": "01f6c0c1fdcd1f9d14fc38f69f00e362661b56ffec984f49b4c401bd0a1cc6cf",
+    "https://deno.land/x/amqp@v0.24.0/src/error_handling.ts": "7566ca255ce33aae0ababfeb47b528baca534025361aa473c9fee6ca7454e8c6",
+    "https://deno.land/x/amqp@v0.24.0/src/frame_error.ts": "a6d792175f20a78949980c94df7a7561fa951088712617d9a311cd373676f47c",
+    "https://deno.land/x/amqp@v0.24.0/src/resolvable.ts": "9c5e0ee3368178f3ea307cfd769a04162934aafdbbf0e0b5b90bff191d11186b",
     "https://deno.land/x/bcrypt@v0.4.1/mod.ts": "ff09bdae282583cf5f7d87efe37ddcecef7f14f6d12e8b8066a3058db8c6c2f7",
     "https://deno.land/x/bcrypt@v0.4.1/src/bcrypt/base64.ts": "b8266450a4f1eb6960f60f2f7986afc4dde6b45bd2d7ee7ba10789e67e17b9f7",
     "https://deno.land/x/bcrypt@v0.4.1/src/bcrypt/bcrypt.ts": "ec221648cc6453ea5e3803bc817c01157dada06aa6f7a0ba6b9f87aae32b21e2",

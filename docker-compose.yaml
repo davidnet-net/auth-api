@@ -29,6 +29,8 @@ services:
       DA_EMAIL: ${EMAIL}
       DA_EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       DA_INTERNAL_TOKEN: ${INTERNAL_TOKEN}
+      DA_RABBITMQ_USER: ${RABBITMQ_USER}
+      DA_RABBITMQ_PASS: ${RABBITMQ_PASS}
     ports:
       - "1000:1000"
     volumes:
@@ -70,3 +72,5 @@ volumes:
 networks:
   auth-network:
     driver: bridge
+  rabbitmq-net:
+    external: true

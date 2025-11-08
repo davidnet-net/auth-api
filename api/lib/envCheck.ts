@@ -8,7 +8,13 @@ export function envCheck() {
 
 	if (!DA_ISPROD || !typeof Boolean) return "DA_ISPROD";
 	if (!DA_JWT_SECRET || !typeof String || DA_JWT_SECRET.length < 64) { return "DA_JWT_SECRET"; }
-	if (!INTERNAL_TOKEN || !typeof String || INTERNAL_TOKEN.length < 64) { return "INTERNAL_TOKEN"; }
+	if (!INTERNAL_TOKEN || !typeof String || INTERNAL_TOKEN.length < 64) { return "DA_INTERNAL_TOKEN"; }
+
+	//? RabbitMQ
+	const RABBITMQ_USER = Deno.env.get("DA_RABBITMQ_USER");
+	const RABBITMQ_PASS = Deno.env.get("DA_RABBITMQ_PASS");
+	if (!RABBITMQ_USER || !typeof String ){ return "DA_RABBITMQ_USER"; }
+	if (!RABBITMQ_PASS || !typeof String ){ return "DA_RABBITMQ_PASS"; }
 
 	//? Database
 	const DA_DB_HOST = Deno.env.get("DA_DB_HOST");
