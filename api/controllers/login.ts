@@ -97,6 +97,7 @@ export const login = async (ctx: Context) => {
 				timezone: preferences.timezone,
 				dateFormat: preferences.dateFormat,
 				firstDay: preferences.firstDay,
+				language: preferences.language,
 			},
 		});
 
@@ -114,6 +115,7 @@ export const login = async (ctx: Context) => {
 				timezone: preferences.timezone,
 				dateFormat: preferences.dateFormat,
 				firstDay: preferences.firstDay,
+				language: preferences.language,
 			},
 		});
 

@@ -28,6 +28,7 @@ export interface SessionInfo {
 		timezone: string;
 		dateFormat: string;
 		firstDay: string;
+		language: string;
 	};
 }
 
@@ -49,6 +50,7 @@ function toSessionInfo(payload: any): SessionInfo {
 			timezone: payload.preferences?.timezone ?? "UTC",
 			dateFormat: payload.preferences?.dateFormat ?? "DD/MM/YYYY",
 			firstDay: payload.preferences?.firstDay ?? "1",
+			language: payload.preferences?.language ?? "en",
 		},
 	};
 }
@@ -114,7 +116,7 @@ export const refresh = async (ctx: Context) => {
 				[payload.userId],
 			);
 			const [settingsRow] = await client.query(
-				`SELECT timezone, dateFormat, firstDay FROM user_settings WHERE user_id = ? LIMIT 1`,
+				`SELECT timezone, dateFormat, firstDay, language FROM user_settings WHERE user_id = ? LIMIT 1`,
 				[payload.userId],
 			);
 
@@ -131,6 +133,7 @@ export const refresh = async (ctx: Context) => {
 					timezone: settingsRow?.timezone ?? "UTC",
 					dateFormat: settingsRow?.dateFormat ?? "DD/MM/YYYY",
 					firstDay: settingsRow?.firstDay ?? "1",
+					language: settingsRow?.language ?? "en",
 				},
 			};
 		}
