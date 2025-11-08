@@ -1,6 +1,7 @@
 #!/usr/bin/env -S deno run --allow-net
 
-import amqp, { Connection, Channel, Buffer } from "npm:amqplib";
+import amqp, { Connection, Channel } from "npm:amqplib";
+import { Buffer } from "node:buffer";
 
 // -------------------------
 // Deno env vars
