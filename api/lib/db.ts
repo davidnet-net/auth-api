@@ -107,6 +107,7 @@ async function ensureDBStructure(client: Client) {
         timezone VARCHAR(60) DEFAULT 'UTC',
         dateFormat VARCHAR(32) DEFAULT 'DD-MM-YYYY HH:mm',
         firstDay VARCHAR(16) DEFAULT 'monday',
+        language VARCHAR(5) DEFAULT 'en',
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
