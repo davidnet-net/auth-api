@@ -47,6 +47,7 @@ export const loadPreferences = async (ctx: Context) => {
 				timezone: row.timezone,
 				dateFormat: row.dateFormat,
 				firstDay: row.firstDay,
+				language: row.language
 			};
 		} else {
 			// No settings yet → return defaults
@@ -55,6 +56,7 @@ export const loadPreferences = async (ctx: Context) => {
 				timezone: "UTC",
 				dateFormat: "DD-MM-YYYY HH:mm",
 				firstDay: "monday",
+				language: "en"
 			};
 		}
 	} catch (err) {
@@ -85,12 +87,13 @@ export const savePreferences = async (ctx: Context) => {
 	}
 
 	const body = await ctx.request.body({ type: "json" }).value;
-	const { timezone, dateFormat, firstDay } = body;
+	const { timezone, dateFormat, firstDay, language } = body;
 
 	if (
 		typeof timezone !== "string" ||
 		typeof dateFormat !== "string" ||
-		typeof firstDay !== "string"
+		typeof firstDay !== "string" ||
+		typeof language !== "string" 
 	) {
 		ctx.response.status = 400;
 		ctx.response.body = { error: "Invalid input" };
@@ -111,9 +114,9 @@ export const savePreferences = async (ctx: Context) => {
 	try {
 		await client.execute(
 			`UPDATE user_settings 
-     SET timezone = ?, dateFormat = ?, firstDay = ?
+     SET timezone = ?, dateFormat = ?, firstDay = ?, language = ?,
      WHERE user_id = ?`,
-			[timezone, dateFormat, firstDay, userId],
+			[timezone, dateFormat, firstDay, language, userId],
 		);
 
 		ctx.response.status = 200;
