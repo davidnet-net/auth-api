@@ -3,6 +3,7 @@ import { log } from "../lib/logger.ts";
 
 const DA_ISPROD = Deno.env.get("DA_ISPROD") === "true";
 const allowedHostRegex = /^([a-z0-9-]+\.)*davidnet\.net$/i;
+const INTERNAL_TOKEN = Deno.env.get("DA_INTERNAL_TOKEN")!;
 
 // Fetch your server's external IP once at startup
 export const serverExternalIP = await (async () => {
@@ -56,6 +57,14 @@ export const cors: Middleware = async (ctx, next) => {
 	}
 
 	if (!DA_ISPROD) {
+		await next();
+		return;
+	}
+
+	const body = await ctx.request.body({ type: "json" }).value;
+	const { token } = body;
+
+	if (token == INTERNAL_TOKEN) {
 		await next();
 		return;
 	}

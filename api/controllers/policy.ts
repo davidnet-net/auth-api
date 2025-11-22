@@ -6,7 +6,7 @@ import { verifyJWT } from "../lib/jwt.ts";
 
 const INTERNAL_TOKEN = Deno.env.get("DA_INTERNAL_TOKEN")!;
 const POLICY_LINK = "https://davidnet.net/legal/";
-const ACCEPT_BASE_LINK = "https://account.davidnet.net/policy/accept";
+const ACCEPT_BASE_LINK = "https://davidnet.net/legal/accept";
 
 /**
  * Extracts the userId from JWT in the Authorization header.
