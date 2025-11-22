@@ -52,11 +52,11 @@ export const policy_change = async (ctx: Context) => {
     const users = await client.query("SELECT id, username, email FROM users");
     for (const user of users) {
       try {
-        const acceptLink = `${ACCEPT_BASE_LINK}`;
+        const accept_link = `${ACCEPT_BASE_LINK}`;
         const html = await loadEmailTemplate("email_templates/policy_update.html", {
           username: user.username,
           policyLink: POLICY_LINK,
-          acceptLink,
+          accept_link,
         });
         await sendEmail(user.email, "Please accept the updated policies", html);
       } catch (e) {
