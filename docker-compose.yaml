@@ -43,6 +43,7 @@ services:
       - db
     networks:
       - auth-network
+      - rabbitmq-net
     dns:
       - 192.168.1.141
       - 1.1.1.1
