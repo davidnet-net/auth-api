@@ -45,7 +45,6 @@ services:
       - auth-network
       - rabbitmq-net
     dns:
-      - localhost
       - 192.168.1.141
       - 1.1.1.1
     healthcheck:
