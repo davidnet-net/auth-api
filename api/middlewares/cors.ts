@@ -62,12 +62,15 @@ export const cors: Middleware = async (ctx, next) => {
 	}
 
 	const body = await ctx.request.body({ type: "json" }).value;
-	const { token } = body;
+	if (body) {
+		const { token } = body;
 
-	if (token == INTERNAL_TOKEN) {
-		await next();
-		return;
+		if (token && token == INTERNAL_TOKEN) {
+			await next();
+			return;
+		}
 	}
+	
 
 	if (!origin) {
 		log("Denied: ", clientIP, " no cors origin.");
