@@ -61,7 +61,7 @@ services:
     image: adminer
     restart: unless-stopped
     ports:
-      - "3000:8080"  # Adminer draait van binnen op 8080, buiten op 3000
+      - "25566:8080"  # Adminer draait van binnen op 8080, buiten op 3000
     networks:
       - auth-network
     depends_on:
