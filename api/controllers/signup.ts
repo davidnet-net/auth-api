@@ -220,6 +220,11 @@ export const signup = async (ctx: Context) => {
 			access_token: access_token,
 		};
 
+		await client.execute(
+		      "INSERT IGNORE INTO user_policy_acceptance (user_id) VALUES (?)",
+		      [user_id]
+		);
+		
 		// Internal
 		if (DA_ISPROD) {
 			const jwt_to = Deno.env.get("DA_JWT_SECRET"); //TODO Make an better way of internal auth.
