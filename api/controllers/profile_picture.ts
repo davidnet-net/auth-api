@@ -63,7 +63,6 @@ export async function delete_profile_picture(
 		);
 	}
 }
-
 /**
  * POST /profile-picture
  * Uploads and sets the profile picture for the authenticated user.
@@ -98,11 +97,19 @@ export const uploadProfilePicture = async (
 			return;
 		}
 
-		// Parse multipart/form-data
-		const body = await ctx.request.body({ type: "form-data" });
-		const form = await body.value.read({ maxSize: 5_000_000 }); // 5 MB limit
-		const file = form.files?.find((f) => f.name === "file");
+		// Parse multipart/form-data met maxSize van 25MB
+		let form;
+		try {
+			const body = await ctx.request.body({ type: "form-data" });
+			form = await body.value.read({ maxSize: 25_000_000 }); // 25 MB
+		} catch (err) {
+			// Max size overschreden of andere parse fout
+			ctx.response.status = 400;
+			ctx.response.body = { error: "File too large. Max size 25 MB." };
+			return;
+		}
 
+		const file = form.files?.find((f) => f.name === "file");
 		if (!file || !file.content) {
 			ctx.response.status = 400;
 			ctx.response.body = { error: "Missing image file." };
@@ -154,9 +161,10 @@ export const uploadProfilePicture = async (
 		const filePath = `${UPLOAD_DIR}/${fileName}`;
 		await Deno.writeFile(filePath, file.content);
 
+		// Delete old avatar
 		await delete_profile_picture(userId, false);
 
-		// Public URL to serve, encode filename and add ?v=
+		// Public URL to serve, encode filename and add cache-buster
 		const baseUrl = Deno.env.get("DA_ISPROD") === "true"
 			? "https://auth.davidnet.net"
 			: "http://localhost:1000";
@@ -184,6 +192,7 @@ export const uploadProfilePicture = async (
 		ctx.response.body = { error: "Internal server error." };
 	}
 };
+
 
 /**
  * GET /profile-picture/:filename
