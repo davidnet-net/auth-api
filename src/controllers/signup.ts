@@ -8,7 +8,8 @@ import { loadEmailTemplate, sendEmail } from "../lib/mail.ts";
 import { formatDateWithUTCOffset } from "../lib/time.ts";
 import { getForwardedIP } from "../lib/internet.ts";
 
-const AVATAR_PLACEHOLDER = "https://auth.davidnet.net/profile-picture/placeholder";
+const AVATAR_PLACEHOLDER =
+	"https://auth.davidnet.net/profile-picture/placeholder";
 const DA_ISPROD = Deno.env.get("DA_ISPROD") === "true";
 if (typeof DA_ISPROD !== "boolean") {
 	throw new Error("Invalid env: DA_ISPRO");
@@ -221,10 +222,10 @@ export const signup = async (ctx: Context) => {
 		};
 
 		await client.execute(
-		      "INSERT IGNORE INTO user_policy_acceptance (user_id) VALUES (?)",
-		      [user_id]
+			"INSERT IGNORE INTO user_policy_acceptance (user_id) VALUES (?)",
+			[user_id],
 		);
-		
+
 		// Internal
 		if (DA_ISPROD) {
 			const jwt_to = Deno.env.get("DA_JWT_SECRET"); //TODO Make an better way of internal auth.

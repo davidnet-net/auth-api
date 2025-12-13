@@ -4,6 +4,6 @@ import { policy_change } from "../controllers/policy.ts";
 const router = new Router();
 
 router
-    .post("/policy_change", policy_change)
+	.post("/policy_change", policy_change);
 
 export default router;

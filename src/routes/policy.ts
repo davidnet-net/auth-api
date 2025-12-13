@@ -4,7 +4,7 @@ import { accept_policy, check_policy } from "../controllers/policy.ts";
 const router = new Router();
 
 router
-    .post("/accept", accept_policy)
-    .get("/check", check_policy)
+	.post("/accept", accept_policy)
+	.get("/check", check_policy);
 
 export default router;

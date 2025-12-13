@@ -5,6 +5,7 @@
     "jsr:@std/bytes@^1.0.5": "1.0.6",
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "jsr:@std/io@*": "0.225.2",
+    "npm:amqplib@*": "0.10.9",
     "npm:amqplib@~0.10.9": "0.10.9",
     "npm:nodemailer@*": "7.0.5"
   },

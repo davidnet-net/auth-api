@@ -120,8 +120,7 @@ async function ensureDBStructure(client: Client) {
       );
     `);
 
-
-    await client.execute(`
+		await client.execute(`
       CREATE TABLE IF NOT EXISTS user_policy_acceptance (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
         user_id BIGINT NOT NULL,

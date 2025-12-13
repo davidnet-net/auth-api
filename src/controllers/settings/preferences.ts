@@ -47,7 +47,7 @@ export const loadPreferences = async (ctx: Context) => {
 				timezone: row.timezone,
 				dateFormat: row.dateFormat,
 				firstDay: row.firstDay,
-				language: row.language
+				language: row.language,
 			};
 		} else {
 			// No settings yet → return defaults
@@ -56,7 +56,7 @@ export const loadPreferences = async (ctx: Context) => {
 				timezone: "UTC",
 				dateFormat: "DD-MM-YYYY HH:mm",
 				firstDay: "monday",
-				language: "en"
+				language: "en",
 			};
 		}
 	} catch (err) {
