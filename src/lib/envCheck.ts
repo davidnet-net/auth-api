@@ -17,8 +17,12 @@ export function envCheck() {
 	//? RabbitMQ
 	const RABBITMQ_USER = Deno.env.get("DA_RABBITMQ_USER");
 	const RABBITMQ_PASS = Deno.env.get("DA_RABBITMQ_PASS");
+	const RABBITMQ_HOST = Deno.env.get("DA_RABBITMQ_HOST");
+	const RABBITMQ_PORT = Deno.env.get("DA_RABBITMQ_PORT");
 	if (!RABBITMQ_USER || !typeof String) return "DA_RABBITMQ_USER";
 	if (!RABBITMQ_PASS || !typeof String) return "DA_RABBITMQ_PASS";
+	if (!RABBITMQ_HOST || !typeof String) return "DA_RABBITMQ_HOST";
+	if (!RABBITMQ_PORT || !typeof String) return "DA_RABBITMQ_PORT";
 
 	//? Database
 	const DA_DB_HOST = Deno.env.get("DA_DB_HOST");
