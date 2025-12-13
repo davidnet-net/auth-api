@@ -14,7 +14,7 @@ services:
       - auth-network
 
   api:
-    build: api
+    build: .
     restart: unless-stopped
     environment:
       DA_ISPROD: ${ISPROD}
