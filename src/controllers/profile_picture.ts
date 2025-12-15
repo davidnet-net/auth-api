@@ -111,7 +111,7 @@ export const uploadProfilePicture = async (
         : "jpg";
 
     /* ---------- Read raw bytes ---------- */
-    const body = ctx.request.body({ type: "bytes" });
+    const body = ctx.request.body({ type: "bytes", limit: MAX_UPLOAD_SIZE });
     const fileContent: Uint8Array = await body.value;
 
     /* ---------- Save to disk ---------- */
