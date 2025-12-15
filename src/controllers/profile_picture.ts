@@ -10,33 +10,10 @@ const PLACEHOLDER_URL =
   "https://auth.davidnet.net/profile-picture/placeholder";
 
 const MAX_UPLOAD_SIZE = 25_000_000; // 25MB
-const UPLOAD_TIMEOUT_MS = 10_000; // 10 seconds
 
-/* -------------------------------------------------- */
-/* Utils                                              */
-/* -------------------------------------------------- */
-
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error("Upload timeout")), ms)
-    ),
-  ]);
-}
-
-function getExtensionFromMime(mime: string): string {
-  mime = mime.toLowerCase();
-  if (mime.includes("png")) return "png";
-  if (mime.includes("webp")) return "webp";
-  if (mime.includes("gif")) return "gif";
-  return "jpg";
-}
-
-/* -------------------------------------------------- */
-/* Delete old profile picture                          */
-/* -------------------------------------------------- */
-
+/* ----------------------------- */
+/* Delete old profile picture     */
+/* ----------------------------- */
 export async function delete_profile_picture(
   userId: number,
   resetToPlaceholder = false,
@@ -55,10 +32,7 @@ export async function delete_profile_picture(
     const oldUrl = result[0].avatar_url as string;
     const oldFileName = oldUrl?.split("/").pop()?.split("?")[0];
 
-    if (
-      oldFileName &&
-      !oldFileName.includes("placeholder")
-    ) {
+    if (oldFileName && !oldFileName.includes("placeholder")) {
       try {
         await Deno.remove(`${UPLOAD_DIR}/${oldFileName}`);
       } catch {
@@ -77,10 +51,10 @@ export async function delete_profile_picture(
   }
 }
 
-/* -------------------------------------------------- */
-/* POST /profile-picture                               */
-/* -------------------------------------------------- */
-
+/* ----------------------------- */
+/* PUT /profile-picture           */
+/* Accept raw binary (image)     */
+/* ----------------------------- */
 export const uploadProfilePicture = async (
   ctx: RouterContext<"/profile-picture">,
 ) => {
@@ -107,7 +81,7 @@ export const uploadProfilePicture = async (
 
     const userId = Number(payload.userId);
 
-    /* ---------- Content-Length Guard ---------- */
+    /* ---------- Content-Length Check ---------- */
     const contentLength = Number(
       ctx.request.headers.get("content-length") || 0,
     );
@@ -118,76 +92,37 @@ export const uploadProfilePicture = async (
       return;
     }
 
-    /* ---------- Abort handling ---------- */
-    ctx.request.originalRequest.request.signal.addEventListener(
-      "abort",
-      () => log(`[${requestId}] Client aborted upload`),
-    );
-
-    /* ---------- Multipart parse (WITH TIMEOUT) ---------- */
-    const body = ctx.request.body({ type: "form-data" });
-
-    let form;
-    try {
-      form = await withTimeout(
-        body.value.read({ maxSize: MAX_UPLOAD_SIZE }),
-        UPLOAD_TIMEOUT_MS,
-      );
-    } catch (err) {
-      log_error(`[${requestId}] Upload parse failed`, String(err));
-      ctx.response.status = 408;
-      ctx.response.body = { error: "Upload timeout" };
-      return;
-    }
-
-    const file = form.files?.find((f) => f.name === "file");
-    if (!file) {
-      ctx.response.status = 400;
-      ctx.response.body = { error: "Missing file" };
-      return;
-    }
-
-    /* ---------- Validate MIME ---------- */
-    const mime = (file.contentType || "").toLowerCase();
+    /* ---------- Determine MIME ---------- */
+    const contentType = (ctx.request.headers.get("content-type") || "").toLowerCase();
     const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-
-    if (!allowed.some((t) => mime.includes(t))) {
+    if (!allowed.includes(contentType)) {
       ctx.response.status = 400;
       ctx.response.body = { error: "Invalid file type" };
       return;
     }
 
-    /* ---------- Read file content ---------- */
-    let fileContent: Uint8Array;
-    let tempPath: string | undefined;
+    const ext =
+      contentType === "image/png"
+        ? "png"
+        : contentType === "image/webp"
+        ? "webp"
+        : contentType === "image/gif"
+        ? "gif"
+        : "jpg";
 
-    try {
-      if (file.content) {
-        fileContent = file.content;
-      } else if (file.filename) {
-        tempPath = file.filename;
-        fileContent = await Deno.readFile(file.filename);
-      } else {
-        throw new Error("Invalid file object");
-      }
-    } finally {
-      if (tempPath) {
-        try {
-          await Deno.remove(tempPath);
-        } catch {
-          /* ignore */
-        }
-      }
-    }
+    /* ---------- Read raw bytes ---------- */
+    const body = ctx.request.body({ type: "bytes" });
+    const fileContent: Uint8Array = await body.value;
 
-    /* ---------- Save ---------- */
-    const ext = getExtensionFromMime(mime);
+    /* ---------- Save to disk ---------- */
     const fileName = `${userId}_${crypto.randomUUID()}.${ext}`;
-    const finalPath = `${UPLOAD_DIR}/${fileName}`;
+    const filePath = `${UPLOAD_DIR}/${fileName}`;
+    await Deno.writeFile(filePath, fileContent);
 
-    await Deno.writeFile(finalPath, fileContent);
+    /* ---------- Delete old avatar ---------- */
+    await delete_profile_picture(userId);
 
-    /* ---------- DB update ---------- */
+    /* ---------- Update DB ---------- */
     const client = await getDBClient();
     if (!client) {
       ctx.response.status = 500;
@@ -202,26 +137,27 @@ export const uploadProfilePicture = async (
     const publicUrl =
       `${baseUrl}/profile-picture/${encodeURIComponent(fileName)}?v=${Date.now()}`;
 
-    await delete_profile_picture(userId);
     await client.execute(
       `UPDATE users SET avatar_url = ? WHERE id = ?`,
       [publicUrl, userId],
     );
 
+    /* ---------- Success ---------- */
     ctx.response.status = 200;
     ctx.response.body = { avatar_url: publicUrl };
     log(`[${requestId}] Upload success`);
+
   } catch (err) {
-    log_error(`[${requestId}] CRITICAL`, String(err));
+    log_error(`[${requestId}] CRITICAL ERROR: ${err}`);
     ctx.response.status = 500;
-    ctx.response.body = { error: "Server error" };
+    ctx.response.body = { error: "Server error." };
   }
 };
 
-/* -------------------------------------------------- */
-/* GET /profile-picture/:filename                      */
-/* -------------------------------------------------- */
-
+/* ----------------------------- */
+/* GET /profile-picture/:filename */
+/* Serve the image file           */
+/* ----------------------------- */
 export const getProfilePicture = async (
   ctx: RouterContext<"/profile-picture/:filename">,
 ) => {
