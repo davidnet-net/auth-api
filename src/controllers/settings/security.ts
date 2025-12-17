@@ -65,7 +65,7 @@ export const change_password = async (ctx: Context) => {
 		await sendEmail(
 			email,
 			"Davidnet Security - Password Changed",
-			await loadEmailTemplate("email_templates/password_changed.html", {
+			await loadEmailTemplate("src/email_templates/password_changed.html", {
 				date: formatDate_PREFERREDTIME(
 					(new Date()).toISOString(),
 					await verifyJWT(authHeader.slice(7)),
@@ -188,7 +188,7 @@ export const set_twofa_email_enabled = async (ctx: Context) => {
 		await sendEmail(
 			email,
 			"Davidnet Security - 2FA Changed",
-			await loadEmailTemplate("email_templates/twofa_changed.html", {
+			await loadEmailTemplate("src/email_templates/twofa_changed.html", {
 				date: formatDate_PREFERREDTIME(
 					(new Date()).toISOString(),
 					await verifyJWT(authHeader.slice(7)),
@@ -275,7 +275,7 @@ export const set_twofa_totp_enabled = async (ctx: Context) => {
 		await sendEmail(
 			email,
 			"Davidnet Security - 2FA Changed",
-			await loadEmailTemplate("email_templates/twofa_changed.html", {
+			await loadEmailTemplate("src/email_templates/twofa_changed.html", {
 				date: formatDate_PREFERREDTIME(
 					(new Date()).toISOString(),
 					await verifyJWT(authHeader.slice(7)),

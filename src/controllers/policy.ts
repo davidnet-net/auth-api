@@ -59,7 +59,7 @@ export const policy_change = async (ctx: Context) => {
 			try {
 				const accept_link = `${ACCEPT_BASE_LINK}`;
 				const html = await loadEmailTemplate(
-					"email_templates/policy_update.html",
+					"src/email_templates/policy_update.html",
 					{
 						username: user.username,
 						policyLink: POLICY_LINK,

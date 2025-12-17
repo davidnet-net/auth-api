@@ -79,7 +79,7 @@ export const deleteaccount = async (ctx: Context) => {
 		await sendEmail(
 			user[0].email,
 			"Davidnet Account Deletion",
-			await loadEmailTemplate("email_templates/account_deletion.html", {
+			await loadEmailTemplate("src/email_templates/account_deletion.html", {
 				username: user[0].username,
 				user_id: String(userId),
 				email_hash: await sha256Hash(user[0].email),
@@ -330,7 +330,7 @@ export const requestdata = async (ctx: Context) => {
 					user[0].email,
 					"Davidnet Data Export Ready",
 					await loadEmailTemplate(
-						"email_templates/data_export.html",
+						"src/email_templates/data_export.html",
 						{
 							username: user[0].username,
 							referenceID: String(ReferenceID),

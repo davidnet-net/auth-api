@@ -195,7 +195,7 @@ export const signup = async (ctx: Context) => {
 		await sendEmail(
 			email,
 			"Welcome to Davidnet - Email Verification",
-			await loadEmailTemplate("email_templates/account_creation.html", {
+			await loadEmailTemplate("src/email_templates/account_creation.html", {
 				username: username,
 				verifyemail_url: (DA_ISPROD
 					? "https://account.davidnet.net"

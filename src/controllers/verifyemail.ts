@@ -199,7 +199,7 @@ export const resend_verification_email = async (ctx: Context) => {
 		await sendEmail(
 			email,
 			"Davidnet - Email Verification",
-			await loadEmailTemplate("email_templates/email_verification.html", {
+			await loadEmailTemplate("src/email_templates/email_verification.html", {
 				username: user.username,
 				verifyemail_url: (DA_ISPROD
 					? "https://account.davidnet.net"

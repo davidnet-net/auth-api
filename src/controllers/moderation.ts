@@ -94,7 +94,7 @@ export const moderate_DELETE_account = async (ctx: Context) => {
 		await sendEmail(
 			user[0].email,
 			"Davidnet Account Deletion",
-			await loadEmailTemplate("email_templates/account_deletion.html", {
+			await loadEmailTemplate("src/email_templates/account_deletion.html", {
 				username: user[0].username,
 				user_id: String(userId),
 				email_hash: await sha256Hash(user[0].email),
@@ -107,7 +107,7 @@ export const moderate_DELETE_account = async (ctx: Context) => {
 			user[0].email,
 			"Davidnet Account Moderation",
 			await loadEmailTemplate(
-				"email_templates/account_moderate_deletion.html",
+				"src/email_templates/account_moderate_deletion.html",
 				{
 					username: user[0].username,
 					referenceID: String(ReferenceID),

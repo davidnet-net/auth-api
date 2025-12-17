@@ -64,7 +64,7 @@ export async function loadEmailTemplate(
 // await sendEmail(
 //	"contact@davidnet.net",
 //	"Test Email",
-//	await loadEmailTemplate("email_templates/test.html", {
+//	await loadEmailTemplate("src/email_templates/test.html", {
 //	date: String(Date.now()),
 //	}),
 //);
