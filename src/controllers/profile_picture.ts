@@ -171,7 +171,24 @@ export const getProfilePicture = async (
     filename = filename.split("?")[0];
 
     if (filename === "placeholder") {
-      const file = await Deno.readFile("./placeholder.png");
+      // Debug: show current working directory and contents of '.' and './src'
+      console.log("[debug] getProfilePicture cwd:", Deno.cwd());
+      try {
+        const dotEntries: string[] = [];
+        for await (const e of Deno.readDir(".")) dotEntries.push(e.name);
+        console.log("[debug] . entries:", dotEntries);
+      } catch (e) {
+        console.log("[debug] readDir . error:", (e as Error).message);
+      }
+      try {
+        const srcEntries: string[] = [];
+        for await (const e of Deno.readDir("./src")) srcEntries.push(e.name);
+        console.log("[debug] ./src entries:", srcEntries);
+      } catch (e) {
+        console.log("[debug] readDir ./src error:", (e as Error).message);
+      }
+
+      const file = await Deno.readFile(".src/placeholder.png");
       ctx.response.headers.set("Content-Type", "image/png");
       ctx.response.body = file;
       return;
