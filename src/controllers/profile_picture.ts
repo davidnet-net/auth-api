@@ -188,7 +188,7 @@ export const getProfilePicture = async (
         console.log("[debug] readDir ./src error:", (e as Error).message);
       }
 
-      const file = await Deno.readFile(".src/placeholder.png");
+      const file = await Deno.readFile("./src/placeholder.png");
       ctx.response.headers.set("Content-Type", "image/png");
       ctx.response.body = file;
       return;
