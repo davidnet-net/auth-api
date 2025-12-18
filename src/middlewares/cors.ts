@@ -44,6 +44,14 @@ export const cors: Middleware = async (ctx, next) => {
 		return;
 	}
 
+	// Als het pad begint met /profile-picture/, sta iedereen toe (*)
+	// en sla de authenticatie/IP checks over.
+	if (ctx.request.url.pathname.startsWith("/profile-picture/")) {
+		ctx.response.headers.set("Access-Control-Allow-Origin", "*");
+		await next();
+		return;
+	}
+
 	if (
 		(serverExternalIP && clientIP === serverExternalIP) ||
 		isInternalIP(clientIP)
